@@ -108,15 +108,16 @@ void Abort (const char *fmt, ...)
 
 static void usage (void)
 {
-  printf ("A simple makefile generator.\n"
-          "%s <options> [-G generator]:\n", prog);
-  printf (" -d, --debug:   sets debug-level.\n"
-          " -n, --dry-run: test-mode; writes to stdout.\n"
-          " -f, --force:   ovewrite existing makefile without questions.\n"
-          " -r, --res:     write rule(s) for creating a res-file.\n"
-          " -l, --lib:     write rule(s) for creating a lib-file.\n"
-          " -G             Generators can be: 'cygwin', 'mingw', 'msvc', 'watcom' or\n"
-          "                'windows' for a GNU-makefile dual-targeting MinGW and MSVC.\n");
+  printf ("gen-make ver %d.%d.%d; A simple makefile generator.\n"
+          "%s <options> [-G generator]:\n",
+          VER_MAJOR, VER_MINOR, VER_MICRO, prog);
+  printf ("  -d, --debug:   sets debug-level.\n"
+          "  -n, --dry-run: test-mode; writes to stdout.\n"
+          "  -f, --force:   ovewrite existing makefile without questions.\n"
+          "  -r, --res:     write rule(s) for creating a res-file.\n"
+          "  -l, --lib:     write rule(s) for creating a lib-file.\n"
+          "  -G             Generators can be: 'cygwin', 'mingw', 'msvc', 'watcom' or\n"
+          "                 'windows' for a GNU-makefile dual-targeting MinGW and MSVC.\n");
   exit (0);
 }
 
