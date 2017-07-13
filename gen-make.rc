@@ -41,8 +41,8 @@ BEGIN
       VALUE "OriginalFilename", "gen-make.exe"
       VALUE "ProductName",      "gen-make.exe"
       VALUE "ProductVersion",   RC_VERSION_STR " " RC_BUILDER
-      VALUE "LegalCopyright",   "This library carries a BSD-style licence.\r\n"
-                                "\t\t\tCopyright 2012-2015, Gisle Vanem <gvanem@yahoo.no>."
+      VALUE "LegalCopyright",   "Free and unencumbered licence released into the public domain.\r\n"
+                                "\t\t\t2012-2017, Gisle Vanem <gvanem@yahoo.no>."
     END
   END
 
