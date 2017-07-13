@@ -16,5 +16,6 @@ Makefile.Watcom
 Makefile.Windows
 test.vcxproj
 test.mak
+link.tmp
 zip-and-upload.mak
 file_tree_walk.txh
