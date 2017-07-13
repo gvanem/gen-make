@@ -1,6 +1,6 @@
 #
 # GNU makefile for gen-make.
-# Needs MingW, MingW64 or TDM-gcc.
+# Needs MinGW, MinGW64 or clang-cl.
 #
 
 USE_CLANG_CL ?= 0
