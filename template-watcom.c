@@ -1,0 +1,105 @@
+#define TEMPLATE_IS_WATCOM
+
+#include "gen-make.h"
+
+static const char *template_watcom[] = {
+  TEMPLATE_TOP,
+  "",
+  "OBJ_DIR = Watcom_obj",
+  "",
+  "CC      = wcc386",
+  "CFLAGS  = -3s -zm -zw -zq -fr=nul -wx -bd -bm -d3 -bt=nt -oilrtfm",
+  "CFLAGS += -D_WIN32_WINNT=0x0501 -I. #! Add include dirs as needed",
+  "LDFLAGS = system nt",
+  "",
+  "!if \"$(USE_OPENSSL)\" == \"1\"",
+  "CFLAGS  += " TEMPLATE_OPENSSL_CFLAGS,
+  "EX_LIBS += " TEMPLATE_OPENSSL_EX_LIBS,
+  "!endif",
+  "",
+  "EX_LIBS += " TEMPLATE_EX_LIBS,
+  "",
+  "SOURCES = %s",
+  "",
+  "OBJECTS = %o",
+  "",
+  "GENERATED = config.h",
+  "",
+  "all: $(GENERATED) $(OBJ_DIR) $(PROGRAM)",
+  "\t@echo 'Welcome to $(PROGRAM).'",
+  "",
+  "$(PROGRAM): $(OBJECTS)",
+  "\twlink $(LDFLAGS) option quiet,caseexcact,map=$(@:.exe=.map) name $(PROGRAM) file $(OBJECTS) $(EX_LIBS)",
+  "",
+  "$(OBJ_DIR):",
+  "\t- md $(OBJ_DIR)",
+  "",
+  "%c",
+  "#",
+  "# Replace 'dir_foo' with sub-dir from $(SOURCES) above.",
+  "#",
+  ".ERASE",
+  "{dir_foo}.c{$(OBJ_DIR)}.obj:",
+  "\t*$(CC) $(CFLAGS) $[@ -fo=$@",
+  "\t@echo",
+  "",
+  "%r",
+  "%l",
+  "clean:",
+  "\t@del $(OBJECTS) $(PROGRAM:.exe=.map)",
+  "",
+  "vclean realclean: clean",
+  "\t@del $(PROGRAM) $(GENERATED)",
+  "\t- rd $(OBJ_DIR)",
+  "",
+  TEMPLATE_CONFIG,
+};
+
+const char *watcom_makefile_name = "Makefile.Watcom";
+
+const char *watcom_c_rule =
+           ".ERASE\n"
+           ".c{$(OBJ_DIR)}.obj:\n"
+           "\t*$(CC) $(CFLAGS) $[@ -fo=$@\n"
+           "\t@echo\n";
+
+const char *watcom_cc_rule =
+           ".ERASE\n"
+           ".cc{$(OBJ_DIR)}.obj:\n"
+           "\t*wpp386 $(CFLAGS) $[@ -fo=$@\n"
+           "\t@echo\n";
+
+const char *watcom_cpp_rule =
+           ".ERASE\n"
+           ".cpp{$(OBJ_DIR)}.obj:\n"
+           "\t*wpp386 $(CFLAGS) $[@ -fo=$@\n"
+           "\t@echo\n";
+
+const char *watcom_cxx_rule =
+           ".ERASE\n"
+           ".cxx{$(OBJ_DIR)}.obj:\n"
+           "\t*wpp386 $(CFLAGS) $[@ -fo=$@\n"
+           "\t@echo\n";
+
+const char *watcom_res_rule =
+            ".ERASE\n"
+            "$(OBJ_DIR)\\foo.res: foo.rc $(THIS_FILE)\n"
+            "\twrc -q -r -zm -D__WATCOMC__ -fo=$@ $[@\n"
+            "\t@echo\n";
+
+const char *watcom_lib_rule =
+            ".ERASE\n"
+            "foo.lib: $(LIB_OBJ) $(THIS_FILE)\n"
+            "\twlib -q -b -c $^@ $(LIB_OBJ) +-\n"
+            "\t@echo\n";
+
+int generate_watcom_wmake (FILE *out)
+{
+  size_t i;
+
+  for (i = 0; i < DIM(template_watcom); i++)
+      write_template_line(out, template_watcom[i]);
+  fputs ("\n", out);
+  return (0);
+}
+

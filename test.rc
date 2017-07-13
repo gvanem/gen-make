@@ -1,0 +1,6 @@
+#include <winver.h>
+
+LANGUAGE 0x09,0x01
+
+#define RC_VERSION 1, 2, 3, 4
+
