@@ -31,6 +31,7 @@
 #define TEMPLATE_IS_NONE
 
 #include "gen-make.h"
+#include "smartlist.h"
 
 #if defined(__CYGWIN__)
 #define _MAX_PATH   _POSIX_PATH_MAX   /* 256 */
@@ -63,14 +64,13 @@ static const char *obj_suffix = "o";
 
 static enum Generators generator = GEN_UNKNOWN;
 
-static char *c_files   [5000];
-static char *cc_files  [5000];
-static char *cpp_files [5000];
-static char *cxx_files [5000];
-static char *rc_files  [10];
-static char *h_in_files[20];
-
-static char *vpaths [20];
+static smartlist_t *c_files;
+static smartlist_t *cc_files;
+static smartlist_t *cpp_files;
+static smartlist_t *cxx_files;
+static smartlist_t *rc_files;
+static smartlist_t *h_in_files;
+static smartlist_t *vpaths;
 
 static size_t num_c_files = 0;
 static size_t num_cc_files = 0;
@@ -78,7 +78,6 @@ static size_t num_cpp_files = 0;
 static size_t num_cxx_files = 0;
 static size_t num_rc_files = 0;
 static size_t num_h_in_files = 0;
-static size_t num_vpaths = 0;
 
 static int main_found = 0;
 static int WinMain_found = 0;
@@ -235,6 +234,16 @@ static FILE *init_generator (const char *make_filename)
   return (fil);
 }
 
+static void cleanup (void)
+{
+  smartlist_free (c_files);
+  smartlist_free (cc_files);
+  smartlist_free (cpp_files);
+  smartlist_free (cxx_files);
+  smartlist_free (rc_files);
+  smartlist_free (h_in_files);
+  smartlist_free (vpaths);
+}
 
 int main (int argc, char **argv)
 {
@@ -312,48 +321,34 @@ int main (int argc, char **argv)
          generate_windows_make (fil);
          break;
 
-     default:
+    default:
        break;
   }
 
   if (fil != stdout)
      fclose (fil);
+  cleanup();
   return (0);
 }
 
 static void add_file (int is_c, int is_cc, int is_cpp, int is_cxx, int is_rc, int is_h_in, char *file)
 {
-  char  **array = is_c    ? c_files    :
-                  is_cc   ? cc_files   :
-                  is_cpp  ? cpp_files  :
-                  is_cxx  ? cxx_files  :
-                  is_rc   ? rc_files   :
-                  is_h_in ? h_in_files : NULL;
+  smartlist_t *array = is_c    ? c_files    :
+                       is_cc   ? cc_files   :
+                       is_cpp  ? cpp_files  :
+                       is_cxx  ? cxx_files  :
+                       is_rc   ? rc_files   :
+                       is_h_in ? h_in_files : NULL;
 
-  size_t *num   = is_c    ? &num_c_files    :
-                  is_cc   ? &num_cc_files   :
-                  is_cpp  ? &num_cpp_files  :
-                  is_cxx  ? &num_cxx_files  :
-                  is_rc   ? &num_rc_files   :
-                  is_h_in ? &num_h_in_files : NULL;
+  size_t *num = is_c    ? &num_c_files    :
+                is_cc   ? &num_cc_files   :
+                is_cpp  ? &num_cpp_files  :
+                is_cxx  ? &num_cxx_files  :
+                is_rc   ? &num_rc_files   :
+                is_h_in ? &num_h_in_files : NULL;
 
-  char   *which = is_c    ? "c"         :
-                  is_cc   ? "cc"        :
-                  is_cpp  ? "cpp"       :
-                  is_cxx  ? "cxx"       :
-                  is_rc   ? "rc"        :
-                  is_h_in ? "h.in"      : NULL;
-
-  size_t  max_f = is_c    ? DIM(c_files)    :
-                  is_cc   ? DIM(cc_files)   :
-                  is_cpp  ? DIM(cpp_files)  :
-                  is_cxx  ? DIM(cxx_files)  :
-                  is_rc   ? DIM(rc_files)   :
-                  is_h_in ? DIM(h_in_files) : 0;
-
-  array [(*num)++] = file;
-  if (*num == max_f-1)
-     Abort ("Too many .%s-files (max %d files)\n", which, max_f-1);
+  smartlist_add (array, file);
+  *num = smartlist_len (array);
 }
 
 #if 0
@@ -406,7 +401,7 @@ static int file_walker (const char *path, const WIN32_FIND_DATA *ff)
   char       *p, *dot, *slash, dir [MAX_PATH];
   int         is_c = 0, is_cc = 0, is_cpp = 0, is_cxx = 0, is_rc = 0, is_h_in = 0;
   int         considered;
-  size_t      i, len;
+  int         i, len;
 
   len = strlen (path);
   end = strrchr (path, '\0');
@@ -472,52 +467,47 @@ static int file_walker (const char *path, const WIN32_FIND_DATA *ff)
   memcpy (dir, p, slash-p);
   dir[slash-p] = '\0';
 
-  for (i = 0; i < num_vpaths; i++)
-      if (!strcmp(dir,vpaths[i]))
+  for (i = 0; i < smartlist_len(vpaths); i++)
+      if (!strcmp(dir,smartlist_get(vpaths,i)))
          return (0);    /* Already has this VPATH */
 
-  vpaths [num_vpaths++] = strdup (dir);
+  smartlist_add (vpaths, strdup(dir));
   (void) ff;
   return (0);
 }
 
+static int print_sources (const char *which, const smartlist_t *sl)
+{
+  int i, max = smartlist_len (sl);
+
+  for (i = 0; i < max; i++)
+      DEBUG (2, "%s[%2d]: '%s'\n", which, i, (const char*)smartlist_get(sl,i));
+  return (max);
+}
+
 static int find_sources (void)
 {
-  int i, num = 0;
+  int num;
 
-  memset (c_files, 0, sizeof(c_files));
-  memset (cc_files, 0, sizeof(cc_files));
-  memset (cpp_files, 0, sizeof(cpp_files));
-  memset (cxx_files, 0, sizeof(cxx_files));
-  memset (rc_files, 0, sizeof(rc_files));
-  memset (h_in_files, 0, sizeof(h_in_files));
+  c_files    = smartlist_new();
+  cc_files   = smartlist_new();
+  cpp_files  = smartlist_new();
+  cxx_files  = smartlist_new();
+  rc_files   = smartlist_new();
+  h_in_files = smartlist_new();
+  vpaths     = smartlist_new();
 
   main_found = WinMain_found = DllMain_found = 0;
 
   file_tree_walk (".", file_walker);
 
-  for (i = 0; c_files[i]; i++)
-      DEBUG (2, "c_files[%2d]: '%s'\n", i, c_files[i]);
-  num = i;
+  num  = print_sources ("c_files", c_files);
+  num += print_sources ("cc_files", cc_files);
+  num += print_sources ("cpp_files", cpp_files);
+  num += print_sources ("cxx_files", cxx_files);
 
-  for (i = 0; cc_files[i]; i++)
-      DEBUG (2, "cc_files[%2d]: '%s'\n", i, cc_files[i]);
-  num += i;
-
-  for (i = 0; cpp_files[i]; i++)
-      DEBUG (2, "cpp_files[%2d]: '%s'\n", i, cpp_files[i]);
-  num += i;
-
-  for (i = 0; cxx_files[i]; i++)
-      DEBUG (2, "cxx_files[%2d]: '%s'\n", i, cxx_files[i]);
-  num += i;
-
-  for (i = 0; rc_files[i]; i++)
-      DEBUG (2, "rc_files[%2d]: '%s'\n", i, rc_files[i]);
-
-  for (i = 0; h_in_files[i]; i++)
-      DEBUG (2, "h_in_files[%2d]: '%s'\n", i, h_in_files[i]);
-
+  print_sources ("rc_files",   rc_files);
+  print_sources ("h_in_files", h_in_files);
   return (num);
 }
 
@@ -572,47 +562,52 @@ static const char *get_bitness (void)
   return ("??");
 }
 
-static void write_one_file (FILE *out, char **files, size_t idx, size_t max_f, int indent)
+static void write_files (FILE *out, smartlist_t *sl, int indent)
 {
+  const char *file;
+  int    i, max = smartlist_len (sl);
+  size_t len;
   static size_t longest = 0;
-  size_t i, len;
 
-  if (idx == 0)
+  if (max == 0)
+     return;
+
+  for (i = 0; i < max; i++)
   {
-    for (i = 0; i < max_f; i++)
-    {
-      len = strlen (files[i]);
-      if (len > longest)
-         longest = len;
-    }
-    len = strlen (files[0]);
-    fputs (files[0], out);
-  }
-  else
-  {
-    len = strlen (files[idx]);
-    fprintf (out, "%-*s%s", indent, "", files[idx]);
+    file = smartlist_get (sl, i);
+    len = strlen (file);
+    if (len > longest)
+       longest = len;
   }
 
-  if (idx < max_f-1)
-       fprintf (out, " %*s%s\n", longest-len, "", line_end);
-  else fputc ('\n', out);
+  for (i = 0; i < max; i++)
+  {
+    file = smartlist_get (sl, i);
+    len = strlen (file);
+    if (i == 0)
+         fputs (file, out);
+    else fprintf (out, "%-*s%s", indent, "", file);
+
+    if (i < max-1)
+         fprintf (out, " %*s%s\n", longest-len, "", line_end);
+    else fputc ('\n', out);
+  }
 }
 
-static void write_one_object (FILE *out, char **files, int idx, int *len)
+static void write_one_object (FILE *out, smartlist_t *sl, int idx, int *len)
 {
-  char *file = basename (files[idx]);
+  char *file = basename (smartlist_get(sl,idx));
   char *dot  = strrchr (file, '.');
 
   *len += fprintf (out, " $(OBJ_DIR)/%.*s.%s", dot-file, file, obj_suffix);
-  if (*len > 60 && files[idx+1])
+  if (*len > 60 && idx < smartlist_len(sl)-1)
   {
     fprintf (out, " %s\n         ", line_end);
     *len = 0;
   }
 }
 
-static void write_objects (FILE *out, char **files, int num, int add_line_end)
+static void write_objects (FILE *out, smartlist_t *sl, int num, int add_line_end)
 {
   int i, len = 0;
 
@@ -620,7 +615,7 @@ static void write_objects (FILE *out, char **files, int num, int add_line_end)
      fprintf (out, " %s\n         ", line_end);
 
   for (i = 0; i < num; i++)
-      write_one_object (out, files, i, &len);
+      write_one_object (out, sl, i, &len);
 }
 
 /*
@@ -637,7 +632,7 @@ static void write_objects (FILE *out, char **files, int num, int add_line_end)
 int write_template_line (FILE *out, const char *templ)
 {
   const char *p;
-  size_t      i;
+  int         i;
 
   p = strchr (templ,'%');
   if (p && p[1] == 's')
@@ -648,33 +643,30 @@ int write_template_line (FILE *out, const char *templ)
 
     /* Write the list of .c/.cc/.cpp-files at this point.
      */
-    for (i = 0; c_files[i]; i++)
-        write_one_file (out, c_files, i, num_c_files, indent);
+    write_files (out, c_files, indent);
     fprintf (out, "%*s# %d .c SOURCES files found (recursively)\n", indent, "", num_c_files);
 
     if (num_cc_files > 0)
     {
       fprintf (out, "#\n#! Add these $(CC_SOURCES) to $(OBJECTS) as needed.\n#\nCC_SOURCES = ");
-      for (i = 0; cc_files[i]; i++)
-          write_one_file (out, cc_files, i, num_cc_files, indent+3);
+      write_files (out, cc_files, indent+3);
     }
 
     if (num_cpp_files > 0)
     {
       fprintf (out, "\n#\n#! Add these $(CPP_SOURCES) to $(OBJECTS) as needed.\n#\nCPP_SOURCES = ");
-      for (i = 0; cpp_files[i]; i++)
-          write_one_file (out, cpp_files, i, num_cpp_files, indent+4);
+      write_files (out, cpp_files, indent+4);
     }
 
     if (num_cxx_files > 0)
     {
       fprintf (out, "\n#\n#! Add these $(CXX_SOURCES) to $(OBJECTS) as needed.\n#\nCXX_SOURCES = ");
-      for (i = 0; cxx_files[i]; i++)
-          write_one_file (out, cxx_files, i, num_cxx_files, indent+4);
+      write_files (out, cxx_files, indent+4);
     }
 
     if (num_h_in_files > 0)
        fprintf (out, "%*s# Found %d .h.in-file(s); add rules for them.\n", indent, "", num_h_in_files);
+
     if (num_rc_files > 0 && write_res_rule)
        fprintf (out, "%*s# Found %d .rc-file(s); add a 'RC_FILES' list.\n", indent, "", num_rc_files);
     return (1);
@@ -750,12 +742,14 @@ int write_template_line (FILE *out, const char *templ)
   p = strchr (templ,'%');
   if (p && p[1] == 'v')
   {
-    if (num_vpaths > 0)
+    int max = smartlist_len (vpaths);
+
+    if (max > 0)
     {
       fprintf (out, "VPATH = ");
-      for (i = 0; vpaths[i]; i++)
-          fprintf (out, "%s ", vpaths[i]);
-      fprintf (out, "#! %d VPATHs\n", num_vpaths);
+      for (i = 0; i < max; i++)
+          fprintf (out, "%s ", (const char*)smartlist_get(vpaths,i));
+      fprintf (out, "#! %d VPATHs\n", max);
       return (1);
     }
     templ = p + 2;  /* skip past '%v' and fall-through */
