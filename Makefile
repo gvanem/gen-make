@@ -27,6 +27,7 @@ endif
 
 SOURCES = gen-make.c        \
           file_tree_walk.c  \
+          smartlist.c       \
           template-mingw.c  \
           template-cygwin.c \
           template-msvc.c   \
