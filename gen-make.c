@@ -264,6 +264,7 @@ int main (int argc, char **argv)
          "Congratulations! But I will not let you do any damage here.\n", argv[0]);
 #else
   FILE *fil = stdout;
+  const char *makefile = "?";
 
   GetModuleFileName (NULL, prog, sizeof(prog));
   parse_args (argc, argv);
@@ -281,6 +282,7 @@ int main (int argc, char **argv)
   switch (generator)
   {
     case GEN_MINGW:
+         makefile = mingw_makefile_name;
          fil = init_generator (mingw_makefile_name);
          c_rule   = mingw_c_rule;
          cc_rule  = mingw_cc_rule;
@@ -292,6 +294,7 @@ int main (int argc, char **argv)
          break;
 
     case GEN_CYGWIN:
+         makefile = cygwin_makefile_name;
          fil = init_generator (cygwin_makefile_name);
          c_rule   = cygwin_c_rule;
          cc_rule  = cygwin_cc_rule;
@@ -303,7 +306,8 @@ int main (int argc, char **argv)
          break;
 
     case GEN_MSVC:
-         fil = init_generator (msvc_makefile_name);
+         makefile = msvc_makefile_name;
+         fil = init_generator (makefile);
          c_rule   = msvc_c_rule;
          cc_rule  = msvc_cc_rule;
          cpp_rule = msvc_cpp_rule;
@@ -315,7 +319,8 @@ int main (int argc, char **argv)
          break;
 
     case GEN_WATCOM:
-         fil = init_generator (watcom_makefile_name);
+         makefile = watcom_makefile_name;
+         fil = init_generator (makefile);
          c_rule   = watcom_c_rule;
          cc_rule  = watcom_cc_rule;
          cpp_rule = watcom_cpp_rule;
@@ -327,7 +332,8 @@ int main (int argc, char **argv)
          break;
 
     case GEN_WINDOWS:
-         fil = init_generator (windows_makefile_name);
+         makefile = windows_makefile_name;
+         fil = init_generator (makefile);
          c_rule   = windows_c_rule;
          cc_rule  = windows_cc_rule;
          cpp_rule = windows_cpp_rule;
@@ -344,6 +350,7 @@ int main (int argc, char **argv)
   if (fil != stdout)
      fclose (fil);
   cleanup();
+  fprintf (stderr, "Generated %s.\n", makefile);
 #endif       /* IN_THE_REAL_MAKEFILE */
   return (0);
 }
