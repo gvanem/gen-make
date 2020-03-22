@@ -3,14 +3,14 @@
 # Needs MinGW, MinGW64 or clang-cl.
 #
 
-USE_CLANG_CL ?= 0
+USE_CLANG_CL ?= 1
+OBJ_DIR = objects
 
 ifeq ($(USE_CLANG_CL),1)
-  CL=
-  export CL
+  export CL=
 
   CC     = clang-cl
-  CFLAGS = -nologo -MD -Wall -O2 -D_CRT_SECURE_NO_WARNINGS \
+  CFLAGS = -nologo -MD -W2 -O2 -D_CRT_SECURE_NO_WARNINGS \
            -D_CRT_NONSTDC_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE \
            -D_CRT_OBSOLETE_NO_WARNINGS
   RCFLAGS = -nologo -D__clang__
@@ -19,7 +19,7 @@ ifeq ($(USE_CLANG_CL),1)
   O        = obj
 else
   CC       = gcc
-  CFLAGS   = -m32 -Wall -O2 # -ggdb
+  CFLAGS   = -m32 -Wall -O2
   RCFLAGS = -O COFF --target=pe-i386 # -D__MINGW32__
   link_EXE = $(CC) -m32 -s -o $(1) $(2)
   O        = o
@@ -35,15 +35,20 @@ SOURCES = gen-make.c        \
           template-windows.c
 
 ifneq ($(CC),gcc)
+  VPATH    = msvc
   SOURCES += msvc/getopt_long.c
   CFLAGS  += -I.
 endif
 
-OBJECTS = $(SOURCES:.c=.$(O))
+OBJECTS = $(addprefix $(OBJ_DIR)/, \
+            $(notdir $(SOURCES:.c=.$(O))) )
 
-all: gen-make.exe file_tree_walk.exe
+all: $(OBJ_DIR) gen-make.exe file_tree_walk.exe
 
-gen-make.exe: $(OBJECTS) gen-make.res
+$(OBJ_DIR):
+	- mkdir $@
+
+gen-make.exe: $(OBJECTS) $(OBJ_DIR)/gen-make.res
 	$(call link_EXE, $@, $^)
 	@echo
 
@@ -59,37 +64,35 @@ test: gen-make.exe
 	$(MAKE) -f Makefile.Windows CC=gcc depend all ; \
 	foo.exe
 
-%.o: %.c
+$(OBJ_DIR)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 	@echo
 
-%.obj: %.c
+$(OBJ_DIR)/%.obj: %.c
 	$(CC) $(CFLAGS) -c -Fo./$@ $<
 	@echo
 
 ifeq ($(CC),gcc)
-gen-make.res: gen-make.rc
+$(OBJ_DIR)/gen-make.res: gen-make.rc
 	windres $(RCFLAGS) -o $@ $<
 	@echo
 else
-gen-make.res: gen-make.rc
+$(OBJ_DIR)/gen-make.res: gen-make.rc
 	rc $(RCFLAGS) -fo$@ $<
 	@echo
 endif
 
 clean:
-	rm -f $(OBJECTS) gen-make.exe gen-make.res file_tree_walk.exe
-ifneq ($(CC),gcc)
+	rm -f $(OBJ_DIR)/* gen-make.exe gen-make.res file_tree_walk.exe
 	rm -f gen-make.pdb file_tree_walk.pdb
-endif
 
-gen-make.$(O):         gen-make.c gen-make.h
-gen-make.res:          gen-make.rc gen-make.h
-file_tree_walk.$(O):   file_tree_walk.c gen-make.h
-template-mingw.$(O):   template-mingw.c gen-make.h
-template-cygwin.$(O):  template-cygwin.c gen-make.h
-template-msvc.$(O):    template-msvc.c gen-make.h
-template-watcom.$(O):  template-watcom.c gen-make.h
-template-windows.$(O): template-windows.c gen-make.h
-msvc/getopt_long.$(O): msvc/getopt_long.c msvc/getopt_long.h
+$(OBJ_DIR)/gen-make.$(O):         gen-make.c gen-make.h
+$(OBJ_DIR)/gen-make.res:          gen-make.rc gen-make.h
+$(OBJ_DIR)/file_tree_walk.$(O):   file_tree_walk.c gen-make.h
+$(OBJ_DIR)/template-mingw.$(O):   template-mingw.c gen-make.h
+$(OBJ_DIR)/template-cygwin.$(O):  template-cygwin.c gen-make.h
+$(OBJ_DIR)/template-msvc.$(O):    template-msvc.c gen-make.h
+$(OBJ_DIR)/template-watcom.$(O):  template-watcom.c gen-make.h
+$(OBJ_DIR)/template-windows.$(O): template-windows.c gen-make.h
+$(OBJ_DIR)/getopt_long.$(O):      msvc/getopt_long.c msvc/getopt_long.h
 
