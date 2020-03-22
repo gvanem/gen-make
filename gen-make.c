@@ -21,9 +21,17 @@
 #include <limits.h>
 #include <sys/stat.h>
 
-#if defined(_MSC_VER)
+/* Assume if the generated Makefile was able to compile this, it also
+ * generated a 'config.h' file here. And the "PROGRAM = foo.exe"
+ */
+#if !defined(IN_THE_REAL_MAKEFILE)
+  #include "./config.h"
+  char *program_name = "foo";
+
+#elif defined(_MSC_VER)
   #include <msvc/getopt_long.h>
   char *program_name = "gen-make";
+
 #else
   #include <getopt.h>
 #endif
@@ -104,6 +112,8 @@ void Abort (const char *fmt, ...)
   vfprintf (stderr, fmt, args);
   exit (-1);
 }
+
+#if defined(IN_THE_REAL_MAKEFILE)
 
 static void usage (void)
 {
@@ -244,9 +254,15 @@ static void cleanup (void)
   smartlist_free (h_in_files);
   smartlist_free (vpaths);
 }
+#endif /*IN_THE_REAL_MAKEFILE */
+
 
 int main (int argc, char **argv)
 {
+#if !defined(IN_THE_REAL_MAKEFILE)
+  Abort ("It seems a \"gen-make.exe\" generated Makefile was able to compile and build this %s program.\n"
+         "Congratulations! But I will not let you do any damage here.\n", argv[0]);
+#else
   FILE *fil = stdout;
 
   GetModuleFileName (NULL, prog, sizeof(prog));
@@ -328,6 +344,7 @@ int main (int argc, char **argv)
   if (fil != stdout)
      fclose (fil);
   cleanup();
+#endif       /* IN_THE_REAL_MAKEFILE */
   return (0);
 }
 
