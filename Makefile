@@ -2,9 +2,14 @@
 # GNU makefile for gen-make.
 # Needs MinGW, MinGW64 or clang-cl.
 #
-
 USE_CLANG_CL ?= 1
+
 OBJ_DIR = objects
+
+#
+# This assumes you have CygWin/Msys's 'echo' with colour support."
+#
+green_msg = @echo -e '\e[1;32m$(strip $(1))\e[0m'
 
 ifeq ($(USE_CLANG_CL),1)
   export CL=
@@ -20,7 +25,7 @@ ifeq ($(USE_CLANG_CL),1)
 else
   CC       = gcc
   CFLAGS   = -m32 -Wall -O2
-  RCFLAGS = -O COFF --target=pe-i386 # -D__MINGW32__
+  RCFLAGS = -O COFF --target=pe-i386
   link_EXE = $(CC) -m32 -s -o $(1) $(2)
   O        = o
 endif
@@ -49,6 +54,7 @@ $(OBJ_DIR):
 	- mkdir $@
 
 gen-make.exe: $(OBJECTS) $(OBJ_DIR)/gen-make.res
+	$(call green_msg, Linking $@)
 	$(call link_EXE, $@, $^)
 	@echo
 
@@ -56,6 +62,7 @@ file_tree_walk.exe: file_tree_walk.c
 	$(CC) -c -DTEST $(CFLAGS) $<
 	$(call link_EXE, $@, file_tree_walk.$(O))
 	rm -f file_tree_walk.$(O)
+	$(call green_msg, Test me using "file_tree_walk.exe Dir1\\")
 	@echo
 
 test: gen-make.exe
@@ -85,6 +92,7 @@ endif
 clean:
 	rm -f $(OBJ_DIR)/* gen-make.exe gen-make.res file_tree_walk.exe
 	rm -f gen-make.pdb file_tree_walk.pdb
+	rmdir $(OBJ_DIR)
 
 $(OBJ_DIR)/gen-make.$(O):         gen-make.c gen-make.h
 $(OBJ_DIR)/gen-make.res:          gen-make.rc gen-make.h
