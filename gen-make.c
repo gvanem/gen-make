@@ -428,7 +428,7 @@ static int file_walker (const char *path, const WIN32_FIND_DATA *ff)
   else if (!strcmp(dot,".rc"))
     is_rc = 1;
 
-#if 0 /* to-do: make dependency list */
+#if 0     /* to-do: make dependency list */
   else if (!strcmp(dot,".h"))
     is_h = 1;
 #endif
@@ -440,7 +440,7 @@ static int file_walker (const char *path, const WIN32_FIND_DATA *ff)
 
 #if 0
   /*
-   * check the source-file for a 'main(', 'WinMain(' or a 'DllMain('.
+   * to-do: check the source-file for a 'main(', 'WinMain(' or a 'DllMain('.
    */
   if ((is_c || is_cc || is_cpp || is_cxx) && !main_found && !WinMain_found && !DllMain_found)
   {
@@ -824,7 +824,7 @@ static const char *rc_macro[] = {
     "  VS_VERSION_INFO VERSIONINFO",
     "    FILEVERSION    RC_VERSION",
     "    PRODUCTVERSION RC_VERSION",
-    "    FILEFLAGSMASK  0x3fL",
+    "    FILEFLAGSMASK  0x3FL",
     "    FILEOS         VOS__WINDOWS32",
     "    FILETYPE       VFT_APP",
     "    FILESUBTYPE    0x0L",
@@ -833,7 +833,7 @@ static const char *rc_macro[] = {
     "  BEGIN",
     "    BLOCK \"StringFileInfo\"",
     "    BEGIN",
-    "      BLOCK \"040904b0\"",
+    "      BLOCK \"040904B0\"",
     "      BEGIN",
     "        VALUE \"CompanyName\",     \"http://www.foo.com/\"",
     "        VALUE \"FileDescription\", \"foo-bar (\" RC_HOST RC_DBG_REL \").\"",
