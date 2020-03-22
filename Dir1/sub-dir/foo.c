@@ -1,2 +1,2 @@
-#include "d2/foo1.h"
+#include "../d2/foo1.h"
 
