@@ -64,6 +64,7 @@
         "VER_PATCH = 3  #! Change this",                                   \
         "VERSION   = $(VER_MAJOR).$(VER_MINOR).$(VER_PATCH)",              \
         TEMPLATE_DATE,                                                     \
+        TEMPLATE_GREEN_MSG,                                                \
         "",                                                                \
         "%v",                                                              \
         "",                                                                \
@@ -87,7 +88,7 @@
         "# (not all may be needed)",                                       \
         "#",                                                               \
         "define link_EXE",                                                 \
-        "  $(info2 Linking $(strip $(1)))",                                \
+        "  $(call green_msg, Linking $(1))",                               \
         "  $(call link_EXE_$(CC), $(1), $(2))",                            \
         "  @echo",                                                         \
         "endef",                                                           \
@@ -109,7 +110,7 @@
         "#  arg3, $(3): The rest of the arguments.",                       \
         "#",                                                               \
         "define link_DLL",                                                 \
-        "  $(info2 Linking $(strip $(1)))",                                \
+        "  $(call green_msg, Linking $(1))",                               \
         "  $(call link_DLL_$(CC), $(1), $(2), $(3))",                      \
         "  @echo",                                                         \
         "endef",                                                           \
@@ -125,7 +126,7 @@
         "endef",                                                                                              \
         "",                                                                                                   \
         "define make_lib",                                                 \
-        "  $(info2 Creating $(strip $(1)))",                               \
+        "  $(call green_msg, Creating $(1))",                              \
         "  rm -f $(1)",                                                    \
         "  $(call make_lib_$(CC), $(1), $(2))",                            \
         "  @echo",                                                         \
@@ -140,7 +141,7 @@
         "endef",                                                           \
         "",                                                                \
         "define make_res",                                                 \
-        "  $(info2 Creating $(strip $(2)))",                               \
+        "  $(call green_msg, Creating $(1))",                              \
         "  $(call make_res_$(CC), $(1), $(2))",                            \
         "  @echo",                                                         \
         "endef",                                                           \
@@ -195,7 +196,7 @@
           "endef",                                                                                \
           "",                                                                                     \
           "config.h: $(THIS_FILE)",                                                               \
-          "\t$(info2 Generating $@)",                                                             \
+          "\t$(call green_msg, Generating $@)",                                                   \
           "\t$(file >  $@,$(WARNING))",                                                           \
           "\t$(file >> $@,#ifndef _CONFIG_H)",                                                    \
           "\t$(file >> $@,$(CONFIG_H))",                                                          \
@@ -219,12 +220,18 @@
 #endif
 
 #if defined(TEMPLATE_IS_GNUMAKE)
-  #define TEMPLATE_DATE                 "",                                \
-                                        "DATE := $(shell date +%d-%B-%Y)", \
-                                        "",                                \
-                                        "-load mk_test.dll"
+  #define TEMPLATE_DATE        "",                              \
+                               "DATE = $(shell date +%d-%B-%Y)" \
+                               ""
+
+  #define TEMPLATE_GREEN_MSG   "#",                                                                 \
+                               "# This assumes you have CygWin/Msys's 'echo' with colour support.", \
+                               "#",                                                                 \
+                               "green_msg = @echo -e '\\e[1;32m$(strip $(1))\\e[0m'",               \
+                               ""
 #else
-  #define TEMPLATE_DATE                 ""
+  #define TEMPLATE_DATE        ""
+  #define TEMPLATE_GREEN_MSG   ""
 #endif
 
 #define TEMPLATE_GCC_CFLAGS             "-m%b -Wall"

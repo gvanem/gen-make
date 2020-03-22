@@ -71,7 +71,7 @@ static const char *template_windows[] = {
   "GENERATED = config.h",
   "",
   "all: $(GENERATED) $(OBJ_DIR) $(PROGRAM)",
-  "\t@echo 'Welcome to $(PROGRAM) ($$(CC)=$(CC)).'",
+  "\t$(call green_msg, \"Welcome to $(PROGRAM) (CC=$(CC)).\"",
   "",
   "$(OBJ_DIR):",
   "\t- mkdir $(OBJ_DIR)",
