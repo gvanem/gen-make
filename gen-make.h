@@ -186,8 +186,10 @@
           "define CONFIG_H",                                                                      \
           "  #define WIN32_LEAN_AND_MEAN",                                                        \
           "  #if defined(_MSC_VER)",                                                              \
-          "    #define _CRT_SECURE_NO_WARNINGS",                                                  \
           "    #define _CRT_NONSTDC_NO_WARNINGS",                                                 \
+          "    #define _CRT_OBSOLETE_NO_WARNINGS",                                                \
+          "    #define _CRT_SECURE_NO_DEPRECATE",                                                 \
+          "    #define _CRT_SECURE_NO_WARNINGS",                                                  \
           "    /* !Add more stuff here... */",                                                    \
           "  #endif",                                                                             \
           "",                                                                                     \
@@ -199,16 +201,19 @@
           "\t$(call green_msg, Generating $@)",                                                   \
           "\t$(file >  $@,$(WARNING))",                                                           \
           "\t$(file >> $@,#ifndef _CONFIG_H)",                                                    \
+          "\t$(file >> $@,#define _CONFIG_H)",                                                    \
           "\t$(file >> $@,$(CONFIG_H))",                                                          \
           "\t$(file >> $@,#endif /* _CONFIG_H */)"
 
 #elif defined(TEMPLATE_IS_MSVC)
   #define TEMPLATE_CONFIG                                                                         \
           "config.h: $(THIS_FILE)",                                                               \
-          "\t@echo '/* config.h for " TEMPLATE_NAME ". DO NOT EDIT! */' > $@",                    \
-          "\t@echo '#define _CRT_SECURE_NO_WARNINGS'      >> $@",                                 \
-          "\t@echo '#define _CRT_NONSTDC_NO_WARNINGS'     >> $@",                                 \
-          "\t@echo '/* !Add more stuff here...*/'         >> $@",                                 \
+          "\t@echo /* config.h for " TEMPLATE_NAME ". DO NOT EDIT! */ > $@",                      \
+          "\t@echo #define _CRT_NONSTDC_NO_WARNINGS  >> $@",                                      \
+          "\t@echo #define _CRT_OBSOLETE_NO_WARNINGS >> $@",                                      \
+          "\t@echo #define _CRT_SECURE_NO_DEPRECATE  >> $@",                                      \
+          "\t@echo #define _CRT_SECURE_NO_WARNINGS   >> $@",                                      \
+          "\t@echo /* !Add more stuff here...*/      >> $@",                                      \
           ""
 
 #else
@@ -227,8 +232,7 @@
   #define TEMPLATE_GREEN_MSG   "#",                                                                 \
                                "# This assumes you have CygWin/Msys's 'echo' with colour support.", \
                                "#",                                                                 \
-                               "green_msg = @echo -e '\\e[1;32m$(strip $(1))\\e[0m'",               \
-                               ""
+                               "green_msg = @echo -e '\\e[1;32m$(strip $(1))\\e[0m'"
 #else
   #define TEMPLATE_DATE        ""
   #define TEMPLATE_GREEN_MSG   ""
