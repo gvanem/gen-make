@@ -25,7 +25,7 @@ static const char *template_msvc[] = {
   "all: $(GENERATED) $(PROGRAM)",
   "\t@echo 'Welcome to $(PROGRAM). (MSVC)'",
   "",
-  "$(PROGRAM): $(OBJECTS)",
+  "$(PROGRAM): $(OBJECTS) #! maybe add a 'foo.res' here?",
   "\tlink $(LDFLAGS) -out:$@ -map:$(@:.exe=.map) $** $(EX_LIBS) > link.tmp",
   "\ttype link.tmp >> $(@:.exe=.map)",
   "\t@echo",

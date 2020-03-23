@@ -8,9 +8,9 @@ static const char *template_windows[] = {
   "MINGW_ROOT   = $(realpath $(MINGW32))",
   "VC_ROOT      = $(realpath $(VSINSTALLDIR))",
   "",
-  "define USAGE",
+  "define Usage",
   "",
-  "  Usage: $(MAKE) -f $(THIS_FILE) CC=[gcc | cl] [all | depend | clean | vclean | install]",
+  "  Usage: $(MAKE) -f $(THIS_FILE) CC=[gcc | cl | clang-cl] [all | depend | clean | vclean | install]",
   "endef",
   "",
   "ifeq ($(CC),gcc)",
@@ -35,11 +35,21 @@ static const char *template_windows[] = {
   "  EX_LIBS += " TEMPLATE_GCC_EX_LIBS,
   "",
   "else ifeq ($(CC),cl)",
+  "  OBJ_DIR     = MSVC_obj",
+  "",
+  "else ifeq ($(CC),clang-cl)",
+  "  export CL=",
+  "  OBJ_DIR = clang_obj",
+  "",
+  "else",
+  "  $(error $(Usage))",
+  "endif",
+  "",
+  "ifneq ($(CC),gcc)",
   "  INSTALL_BIN = $(VC_ROOT)/bin",
   "  INSTALL_LIB = $(VC_ROOT)/lib",
   "  CFLAGS      = " TEMPLATE_CL_CFLAGS,
   "  LDFLAGS     = " TEMPLATE_CL_LDFLAGS,
-  "  OBJ_DIR     = MSVC_obj",
   "  O           = obj",
   "",
   "  ifeq ($(USE_CRT_DEBUG),1)",
@@ -54,8 +64,6 @@ static const char *template_windows[] = {
   "",
   "  EX_LIBS += " TEMPLATE_EX_LIBS,
   "",
-  "else",
-  "  $(error $(USAGE))",
   "endif",
   "",
   "CFLAGS += " TEMPLATE_COMMON_CFLAGS,
@@ -66,7 +74,8 @@ static const char *template_windows[] = {
   "",
   "SOURCES = %s",
   "",
-  "OBJECTS = $(addprefix $(OBJ_DIR)/, $(notdir $(SOURCES:.c=.$(O))))",
+  "OBJECTS = $(addprefix $(OBJ_DIR)/, \\",
+  "            $(notdir $(SOURCES:.c=.$(O))))",
   "",
   "GENERATED = config.h",
   "",
@@ -76,8 +85,19 @@ static const char *template_windows[] = {
   "$(OBJ_DIR):",
   "\t- mkdir $(OBJ_DIR)",
   "",
-  "$(PROGRAM): $(OBJECTS)",
-  "\t$(call link_EXE, $@, $^)",
+  "foo.exe: $(OBJECTS)",
+  "\t$(call link_EXE, $@, $^ $(EX_LIBS))",
+  "",
+  "foo_imp.lib:  foo.dll",
+  "libfoo.dll.a: foo.dll",
+  "",
+  "ifeq ($(CC),gcc)",
+  "foo.dll: $(OBJECTS)",
+  "\t$(call link_DLL, $@, libfoo.dll.a, $^ $(EX_LIBS))",
+  "else",
+  "foo.dll: $(OBJECTS)",
+  "\t$(call link_DLL, $@, foo_imp.lib, $^ $(EX_LIBS))",
+  "endif",
   "",
   "%c",
   "%l",
@@ -140,14 +160,14 @@ const char *windows_cxx_rule =
 
 const char *windows_res_rule =
            "$(OBJ_DIR)/%.res: %.rc\n"
-           "\t$(call make_res_$(CC), $<, $@)\n";
+           "\t$(call make_res, $<, $@)\n";
 
 const char *windows_lib_rule =
            "#\n"
-           "# Use $(OBJECTS) or $(LIB_OBJ) for $(PROGRAM) or foo.lib/libfoo.a?\n"
+           "# Link $(PROGRAM) with this instead?\n"
            "#\n"
            "libfoo.a foo.lib: $(LIB_OBJ)\n"
-           "\t $(call_make_lib_$(CC), $@, $^)\n";
+           "\t $(call_make_lib, $@, $^)\n";
 
 int generate_windows_make (FILE *out)
 {
