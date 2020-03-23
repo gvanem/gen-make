@@ -1,0 +1,3 @@
+build_script:
+    - cmd: make CC=gcc & gen-make.exe -G windows & make -f Makefile.windows && foo.exe
+
