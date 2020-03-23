@@ -42,7 +42,7 @@ BEGIN
       VALUE "ProductName",      "gen-make.exe"
       VALUE "ProductVersion",   RC_VERSION_STR " " RC_BUILDER
       VALUE "LegalCopyright",   "Free and unencumbered licence released into the public domain.\r\n"
-                                "\t\t\t2012-2017, Gisle Vanem <gvanem@yahoo.no>."
+                                "\t\t\t2012-2020, Gisle Vanem <gvanem@yahoo.no>."
     END
   END
 

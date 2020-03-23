@@ -3,7 +3,7 @@
 
 #define VER_MAJOR 1
 #define VER_MINOR 0
-#define VER_MICRO 1
+#define VER_MICRO 2
 
 #if !defined(RC_INVOKED)  /* Rest of file */
 
@@ -74,107 +74,91 @@
         "USE_OPENSSL   = 0",                                               \
         "USE_CRT_DEBUG = 0",                                               \
         "",                                                                \
-        "PROGRAM  = foo.exe #! Change this",                               \
-        "MAP_FILE = $(PROGRAM:.exe=.map)",                                 \
+        "PROGRAM = foo.exe #! Change this",                                \
         "",                                                                \
         "#",                                                               \
         "# Location of required packages",                                 \
         "#",                                                               \
         "OPENSSL_ROOT = " TEMPLATE_OPENSSL_ROOT
 
-#define TEMPLATE_GMAKE_MACROS                                              \
-        "#",                                                               \
-        "# GNU-make macros:",                                              \
-        "# (not all may be needed)",                                       \
-        "#",                                                               \
-        "define link_EXE",                                                 \
-        "  $(call green_msg, Linking $(1))",                               \
-        "  $(call link_EXE_$(CC), $(1), $(2))",                            \
-        "  @echo",                                                         \
-        "endef",                                                           \
-        "",                                                                \
-        "define link_EXE_cl",                                              \
-        "  link $(LDFLAGS) -out:$(strip $(1)) $(2) $(EX_LIBS) > link.tmp", \
-        "  @cat link.tmp >> $(1:.exe=.map)",                               \
-        "  @rm -f link.tmp",                                               \
-        "endef",                                                           \
-        "",                                                                \
-        "define link_EXE_gcc",                                             \
-        "  $(CC) $(LDFLAGS) -o $(1) $(2) $(EX_LIBS) > $(1:.exe=.map)",     \
-        "endef",                                                           \
-        "",                                                                \
-        "#",                                                               \
-        "# A DLL link macro:",                                             \
-        "#  arg1, $(1): The DLL-file to create.",                          \
-        "#  arg2, $(2): The import library.",                              \
-        "#  arg3, $(3): The rest of the arguments.",                       \
-        "#",                                                               \
-        "define link_DLL",                                                 \
-        "  $(call green_msg, Linking $(1))",                               \
-        "  $(call link_DLL_$(CC), $(1), $(2), $(3))",                      \
-        "  @echo",                                                         \
-        "endef",                                                           \
-        "",                                                                \
-        "define link_DLL_cl",                                                                                 \
-        "  link $(LDFLAGS) -dll -out:$(strip $(1)) -implib:$(strip $(2)) $(3) $(EX_LIBS) > link.tmp",         \
-        "  @cat link.tmp >> $(1:.dll=.map)",                                                                  \
-        "  @rm -f link.tmp $(2:.lib=.exp)",                                                                   \
-        "endef",                                                                                              \
-        "",                                                                                                   \
-        "define link_DLL_gcc",                                                                                \
-        "  $(CC) -shared $(LDFLAGS) -o $(1) -Wl,--out-implib,$(strip $(2)) $(3) $(EX_LIBS) > $(1:.dll=.map)", \
-        "endef",                                                                                              \
-        "",                                                                                                   \
-        "define make_lib",                                                 \
-        "  $(call green_msg, Creating $(1))",                              \
-        "  rm -f $(1)",                                                    \
-        "  $(call make_lib_$(CC), $(1), $(2))",                            \
-        "  @echo",                                                         \
-        "endef",                                                           \
-        "",                                                                \
-        "define make_lib_gcc",                                             \
-        "  ar rs $(1) $(2)",                                               \
-        "endef",                                                           \
-        "",                                                                \
-        "define make_lib_cl",                                              \
-        "  lib -nologo -machine:x86 -out:$(strip $(1)) $(2)",              \
-        "endef",                                                           \
-        "",                                                                \
-        "define make_res",                                                 \
-        "  $(call green_msg, Creating $(1))",                              \
-        "  $(call make_res_$(CC), $(1), $(2))",                            \
-        "  @echo",                                                         \
-        "endef",                                                           \
-        "",                                                                \
-        "define make_res_gcc",                                             \
-        "  windres -D__MINGW32__ --target=pe-i386 -O COFF -o $(2) $(1)",   \
-        "endef",                                                           \
-        "",                                                                \
-        "define make_res_cl",                                              \
-        "  rc -D_MSC_VER -nologo -Fo./$(strip $(2)) $(1)",                 \
-        "endef",                                                           \
+#define TEMPLATE_GMAKE_MACROS                                                                                        \
+        "#",                                                                                                         \
+        "# GNU-make macros:",                                                                                        \
+        "# (not all may be needed)",                                                                                 \
+        "#",                                                                                                         \
+        "define link_EXE",                                                                                           \
+        "  $(call green_msg, Linking $(1))",                                                                         \
+        "  $(call link_EXE_$(CC), $(1), $(2))",                                                                      \
+        "  @echo",                                                                                                   \
+        "endef",                                                                                                     \
+        "",                                                                                                          \
+        "define link_EXE_cl",                                                                                        \
+        "  link $(LDFLAGS) -out:$(strip $(1)) $(2) > link.tmp",                                                      \
+        "  @cat link.tmp >> $(1:.exe=.map)",                                                                         \
+        "  @rm -f link.tmp",                                                                                         \
+        "endef",                                                                                                     \
+        "",                                                                                                          \
+        "link_EXE_gcc      = $(CC) $(LDFLAGS) -o $(1) $(2) > $(1:.exe=.map)",                                        \
+        "link_EXE_clang-cl = $(call link_EXE_cl, $(1), $(2))",                                                       \
+        "",                                                                                                          \
+        "#",                                                                                                         \
+        "# A DLL link macro:",                                                                                       \
+        "#  arg1, $(1): The DLL-file to create.",                                                                    \
+        "#  arg2, $(2): The import library.",                                                                        \
+        "#  arg3, $(3): The rest of the arguments.",                                                                 \
+        "#",                                                                                                         \
+        "define link_DLL",                                                                                           \
+        "  $(call green_msg, Linking $(1))",                                                                         \
+        "  $(call link_DLL_$(CC), $(1), $(2), $(3))",                                                                \
+        "  @echo",                                                                                                   \
+        "endef",                                                                                                     \
+        "",                                                                                                          \
+        "define link_DLL_cl",                                                                                        \
+        "  link $(LDFLAGS) -dll -out:$(strip $(1)) -implib:$(strip $(2)) $(3) > link.tmp",                           \
+        "  @cat link.tmp >> $(1:.dll=.map)",                                                                         \
+        "  @rm -f link.tmp $(2:.lib=.exp)",                                                                          \
+        "endef",                                                                                                     \
+        "",                                                                                                          \
+        "link_DLL_gcc      = $(CC) -shared $(LDFLAGS) -o $(1) -Wl,--out-implib,$(strip $(2)) $(3) > $(1:.dll=.map)", \
+        "link_DLL_clang-cl = $(call link_DLL_cl, $(1), $(2), $(3)",                                                  \
+        "",                                                                                                          \
+        "define make_lib",                                                                                           \
+        "  $(call green_msg, Creating $(1))",                                                                        \
+        "  rm -f $(1)",                                                                                              \
+        "  $(call make_lib_$(CC), $(1), $(2))",                                                                      \
+        "  @echo",                                                                                                   \
+        "endef",                                                                                                     \
+        "",                                                                                                          \
+        "make_lib_gcc = ar rs $(1) $(2)",                                                                            \
+        "make_lib_cl  = lib -nologo -machine:x86 -out:$(strip $(1)) $(2)",                                           \
+        "make_lib_clang-cl = $(call make_lib_cl, $(1), $(2))",                                                       \
+        "",                                                                                                          \
+        "define make_res",                                                                                           \
+        "  $(call green_msg, Creating $(1))",                                                                        \
+        "  $(call make_res_$(CC), $(1), $(2))",                                                                      \
+        "  @echo",                                                                                                   \
+        "endef",                                                                                                     \
+        "",                                                                                                          \
+        "make_res_gcc      = windres -D__MINGW32__ --target=pe-i386 -O COFF -o $(2) $(1)",                           \
+        "make_res_cl       = rc -D_MSC_VER -nologo -Fo./$(strip $(2)) $(1)",                                         \
+        "make_res_clang-cl = rc -D__clang__ -nologo -Fo./$(strip $(2)) $(1)",                                        \
         ""
 
 #if defined(TEMPLATE_IS_WINDOWS)
-  #define TEMPLATE_DEPEND                                                                            \
-          "REPLACE = sed -e 's/\\(.*\\)\\.o: /\\n$$(OBJ_DIR)\\/\\1.$$(O): /'",                       \
-          "",                                                                                        \
-          "depend: $(GENERATED)",                                                                    \
-          "\tgcc -MM $(filter -I% -D%, $(CFLAGS)) $(SOURCES) | $(REPLACE) > .depend." TEMPLATE_NAME, \
-          "",                                                                                        \
-          "-include .depend." TEMPLATE_NAME
-
-#elif defined(TEMPLATE_IS_MINGW) || defined(TEMPLATE_IS_CYGWIN)
-  #define TEMPLATE_DEPEND                                                                            \
-          "REPLACE = sed -e 's/\\(.*\\)\\.o: /\\n$$(OBJ_DIR)\\/\\1.$$(O): /'",                       \
-          "",                                                                                        \
-          "depend: $(GENERATED)",                                                                    \
-          "\t$(CC) -MM $(CFLAGS) $(SOURCES) | $(REPLACE) > .depend." TEMPLATE_NAME,                  \
-          "",                                                                                        \
-          "-include .depend." TEMPLATE_NAME
+  #define DEPEND_GCC "\tgcc"
+#else
+  #define DEPEND_GCC "\t$(CC)"
 #endif
 
 #if defined(TEMPLATE_IS_GNUMAKE)
+  #define TEMPLATE_DEPEND                                                                                      \
+          "DEP_REPLACE = sed -e 's/\\(.*\\)\\.o: /\\n$$(OBJ_DIR)\\/\\1.$$(O): /'",                             \
+          "",                                                                                                  \
+          "depend: $(GENERATED)",                                                                              \
+          DEPEND_GCC " -MM $(filter -I% -D%, $(CFLAGS)) $(SOURCES) | $(DEP_REPLACE) > .depend." TEMPLATE_NAME, \
+          "",                                                                                                  \
+          "-include .depend." TEMPLATE_NAME
+
   #define TEMPLATE_CONFIG                                                                         \
           "define WARNING",                                                                       \
           "  /*",                                                                                 \
@@ -186,10 +170,18 @@
           "define CONFIG_H",                                                                      \
           "  #define WIN32_LEAN_AND_MEAN",                                                        \
           "  #if defined(_MSC_VER)",                                                              \
+          "    #ifndef _CRT_NONSTDC_NO_WARNINGS",                                                 \
           "    #define _CRT_NONSTDC_NO_WARNINGS",                                                 \
+          "    #endif",                                                                           \
+          "    #ifndef _CRT_OBSOLETE_NO_WARNINGS",                                                \
           "    #define _CRT_OBSOLETE_NO_WARNINGS",                                                \
+          "    #endif",                                                                           \
+          "    #ifndef _CRT_SECURE_NO_DEPRECATE",                                                 \
           "    #define _CRT_SECURE_NO_DEPRECATE",                                                 \
+          "    #endif",                                                                           \
+          "    #ifndef _CRT_SECURE_NO_WARNINGS",                                                  \
           "    #define _CRT_SECURE_NO_WARNINGS",                                                  \
+          "    #endif",                                                                           \
           "    /* !Add more stuff here... */",                                                    \
           "  #endif",                                                                             \
           "",                                                                                     \
@@ -208,19 +200,27 @@
 #elif defined(TEMPLATE_IS_MSVC)
   #define TEMPLATE_CONFIG                                                                         \
           "config.h: $(THIS_FILE)",                                                               \
-          "\t@echo /* config.h for " TEMPLATE_NAME ". DO NOT EDIT! */ > $@",                      \
+          "\t@echo /* config.h for " TEMPLATE_NAME ". DO NOT EDIT! > $@",                         \
+          "\t@echo  */                                            >> $@",                         \
+          "\t@echo #ifndef _CRT_NONSTDC_NO_WARNINGS  >> $@",                                      \
           "\t@echo #define _CRT_NONSTDC_NO_WARNINGS  >> $@",                                      \
+          "\t@echo #endif                            >> $@",                                      \
+          "\t@echo #ifndef _CRT_OBSOLETE_NO_WARNINGS >> $@",                                      \
           "\t@echo #define _CRT_OBSOLETE_NO_WARNINGS >> $@",                                      \
+          "\t@echo #endif                            >> $@",                                      \
+          "\t@echo #ifndef _CRT_SECURE_NO_DEPRECATE  >> $@",                                      \
           "\t@echo #define _CRT_SECURE_NO_DEPRECATE  >> $@",                                      \
+          "\t@echo #endif                            >> $@",                                      \
+          "\t@echo #ifndef _CRT_SECURE_NO_WARNINGS   >> $@",                                      \
           "\t@echo #define _CRT_SECURE_NO_WARNINGS   >> $@",                                      \
+          "\t@echo #endif                            >> $@",                                      \
           "\t@echo /* !Add more stuff here...*/      >> $@",                                      \
           ""
-
 #else
   #define TEMPLATE_CONFIG                                                                         \
           "config.h: $(THIS_FILE)",                                                               \
-          "\t@echo '/* config.h for " TEMPLATE_NAME ". DO NOT EDIT! */' > $@",                    \
-          "\t@echo '/* !Add more stuff here */'             >> $@",                               \
+          "\t@echo /* config.h for " TEMPLATE_NAME ". DO NOT EDIT! */ > $@",                      \
+          "\t@echo /* !Add more stuff here */             >> $@",                                 \
           ""
 #endif
 
@@ -229,7 +229,8 @@
                                "DATE = $(shell date +%d-%B-%Y)" \
                                ""
 
-  #define TEMPLATE_GREEN_MSG   "#",                                                                 \
+  #define TEMPLATE_GREEN_MSG   "",                                                                  \
+                               "#",                                                                 \
                                "# This assumes you have CygWin/Msys's 'echo' with colour support.", \
                                "#",                                                                 \
                                "green_msg = @echo -e '\\e[1;32m$(strip $(1))\\e[0m'"
@@ -241,13 +242,15 @@
 #define TEMPLATE_GCC_CFLAGS             "-m%b -Wall"
 #define TEMPLATE_GCC_LDFLAGS            "-m%b -Wl,--print-map,--sort-common"
 
-#define TEMPLATE_CL_CFLAGS              "-nologo -W3 -Zi -O2 -DWIN32"
+#define TEMPLATE_CL_CFLAGS              "-nologo -W3 -Zi -O2 -DWIN32 -D_CRT_NONSTDC_NO_WARNINGS \\\n"              \
+                                        "             -D_CRT_OBSOLETE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE \\\n" \
+                                        "             -D_CRT_SECURE_NO_WARNINGS"
 #define TEMPLATE_CL_LDFLAGS             "-nologo -debug -incremental:no -verbose"
 
 #define TEMPLATE_COMMON_CFLAGS          "-D_WIN32_WINNT=0x0501 -DHAVE_CONFIG_H -I. #! Add include dirs as needed"
 
 #if defined(TEMPLATE_IS_CYGWIN)
-  #define TEMPLATE_OPENSSL_ROOT         "#! Not needed. I assume OpenSSL is installed under /usr/include"
+  #define TEMPLATE_OPENSSL_ROOT         "#! Not needed. OpenSSL should be installed under /usr/include"
 
 #elif defined(TEMPLATE_IS_GNUMAKE)
   #define TEMPLATE_OPENSSL_ROOT         "$(MINGW_ROOT)/src/inet/Crypto/OpenSSL  #! Example requirement."
@@ -258,11 +261,11 @@
 
 #if defined(TEMPLATE_IS_CYGWIN)
   #define TEMPLATE_OPENSSL_CFLAGS       "-DHAVE_OPENSSL -DOPENSSL_USE_DEPRECATED"
-  #define TEMPLATE_OPENSSL_GCC_EX_LIBS  "/usr/lib/libssl.a /usr/lib/libcrypto.a -lgdi32"
+  #define TEMPLATE_OPENSSL_GCC_EX_LIBS  "/usr/lib/libssl.a /usr/lib/libcrypto.a"
 #else
   #define TEMPLATE_OPENSSL_CFLAGS       "-DHAVE_OPENSSL -DOPENSSL_USE_DEPRECATED -I$(OPENSSL_ROOT)/include"
-  #define TEMPLATE_OPENSSL_GCC_EX_LIBS  "$(OPENSSL_ROOT)/libssl.dll.a   $(OPENSSL_ROOT)/libcrypto.dll.a -lgdi32"
-  #define TEMPLATE_OPENSSL_EX_LIBS      "$(OPENSSL_ROOT)/libssl_imp.lib $(OPENSSL_ROOT)/libcrypto_imp.lib gdi32.lib"
+  #define TEMPLATE_OPENSSL_GCC_EX_LIBS  "$(OPENSSL_ROOT)/libssl.dll.a $(OPENSSL_ROOT)/libcrypto.dll.a"
+  #define TEMPLATE_OPENSSL_EX_LIBS      "$(OPENSSL_ROOT)/libssl_imp.lib $(OPENSSL_ROOT)/libcrypto_imp.lib"
 #endif
 
 #define TEMPLATE_GCC_EX_LIBS            "-lws2_32    #! Add more libs as needed"
