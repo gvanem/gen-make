@@ -1,9 +1,9 @@
 build_script:
 - cmd: >-
     set PATH=c:\msys64\MinGW32\bin;c:\msys64\usr\bin;%PATH% &
-    make CC=gcc              &
-    gen-make.exe -G windows  &
-    make -f Makefile.windows &
+    make CC=gcc                                             &
+    gen-make.exe -G windows                                 &
+    make CC=gcc -f Makefile.windows                         &
     foo.exe
 
 
