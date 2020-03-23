@@ -1,9 +1,7 @@
 #
 # GNU makefile for gen-make.
-# Needs MinGW, MinGW64 or clang-cl.
+# Needs MinGW, MinGW64, cl or clang-cl.
 #
-USE_CLANG_CL ?= 1
-
 OBJ_DIR = objects
 
 #
@@ -11,23 +9,36 @@ OBJ_DIR = objects
 #
 green_msg = @echo -e '\e[1;32m$(strip $(1))\e[0m'
 
-ifeq ($(USE_CLANG_CL),1)
-  export CL=
+define Usage
 
-  CC     = clang-cl
-  CFLAGS = -nologo -MD -W2 -O2 -D_CRT_SECURE_NO_WARNINGS \
-           -D_CRT_NONSTDC_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE \
-           -D_CRT_OBSOLETE_NO_WARNINGS
+  Usage: $(MAKE) CC=[gcc | cl, clang-cl]
+endef
+
+ifeq ($(CC),clang-cl)
+  export CL=
   RCFLAGS = -nologo -D__clang__
 
-  link_EXE = link -nologo -debug -incremental:no -out:$(strip $(1)) $(2)
-  O        = obj
-else
+else ifeq ($(CC),cl)
+  RCFLAGS = -nologo -D_MSC_VER
+
+else ifeq ($(CC),gcc)
   CC       = gcc
   CFLAGS   = -m32 -Wall -O2
   RCFLAGS = -O COFF --target=pe-i386
   link_EXE = $(CC) -m32 -s -o $(1) $(2)
   O        = o
+
+else
+  $(error $(Usage))
+endif
+
+ifneq ($(CC),gcc)
+  CFLAGS = -nologo -MD -W2 -O2 -D_CRT_SECURE_NO_WARNINGS \
+           -D_CRT_NONSTDC_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE \
+           -D_CRT_OBSOLETE_NO_WARNINGS
+
+  link_EXE = link -nologo -debug -incremental:no -out:$(strip $(1)) $(2)
+  O        = obj
 endif
 
 #
