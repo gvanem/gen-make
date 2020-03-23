@@ -1,11 +1,16 @@
 build_script:
 - cmd: >-
-    set PATH=c:\msys64\MinGW32\bin;c:\msys64\usr\bin;%PATH% &
-    make CC=gcc                                             &
-    gen-make.exe -G windows                                 &
-    make CC=gcc -f Makefile.windows                         &
-    foo.exe
+    set PATH=c:\msys64\MinGW32\bin;c:\msys64\usr\bin;%PATH%              &
+    make CC=gcc                                                          &
+    gen-make.exe -G windows
 
+test_script:
+- cmd: >-
+    c:\msys64\usr\bin\echo -e '\e[1;32mtesting file_tree_walk.exe\e[0m'  &
+    file_tree_walk.exe Dir1                                              &
+    c:\msys64\usr\bin\echo -e '\e[1;32mRegenerating myself\e[0m'         &
+    make CC=gcc -f Makefile.windows                                      &
+    foo.exe
 
 
 
