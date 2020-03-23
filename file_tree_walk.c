@@ -28,7 +28,7 @@
 #include <io.h>
 #include <windows.h>
 
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && !defined(__WATCOMC__)
 #include <dir.h>
 #endif
 
@@ -99,7 +99,7 @@ DWORD file_tree_walk (const char *dir, walker_func func)
      */
     strcpy (dir_end, ff_data.cFileName);
 
-    /* Invoke func() on this file.
+    /* Invoke '(*func)()' on this file/directory.
      */
     func_result = (*func) (path, &ff_data);
     if (func_result != 0)
