@@ -6,11 +6,11 @@ build_script:
 
 test_script:
 - cmd: >-
-    c:\msys64\usr\bin\echo.exe -e '\e[1;32mTesting file_tree_walk[0m' &
-    file_tree_walk.exe test-dir\                                      &
-    c:\msys64\usr\bin\echo.exe -e '\e[1;32mRegenerating myself\e[0m'  &
-    gen-make.exe -G windows                                           &
-    make CC=gcc -f Makefile.windows                                   &
+    c:\msys64\usr\bin\echo.exe -e '\e[1;33mTesting file_tree_walk' &
+    file_tree_walk.exe test-dir\                                   &
+    c:\msys64\usr\bin\echo.exe -e 'Regenerating myself\e[0m'       &
+    gen-make.exe -G windows                                        &
+    make CC=gcc -f Makefile.windows                                &
     foo.exe
 
 
