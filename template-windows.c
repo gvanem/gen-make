@@ -35,7 +35,7 @@ static const char *template_windows[] = {
   "  EX_LIBS += " TEMPLATE_GCC_EX_LIBS,
   "",
   "else ifeq ($(CC),cl)",
-  "  OBJ_DIR     = MSVC_obj",
+  "  OBJ_DIR = MSVC_obj",
   "",
   "else ifeq ($(CC),clang-cl)",
   "  export CL=",
