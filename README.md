@@ -9,26 +9,33 @@ It supports these generators (option `-G`) and makefile syntaxes:
 
 | *Generator* | *Syntax* |
 | :----------| :--------------------|
-| `windows` | **GNU-make**, targeting MinGW, MSVC and clang-cl. |
-|| Use e.g. `make -f Makefile.Windows CC=gcc`. |
-| `cygwin`  | **GNU-make** |
-| `mingw`   | **GNU-make**, assumes a dual-target MinGW supporting `-m32` |
-| `msvc`    | **Nmake** for Microsoft's make program. |
-| `watcom`  | **Wmake** for OpenWatcom's make program. |
+| `windows` | **GNU-make**, targeting MinGW, MSVC and clang-cl.            |
+|           | Use e.g. `make -f Makefile.Windows CC=gcc`.                  |
+| `cygwin`  | **GNU-make**                                                 |
+| `mingw`   | **GNU-make**, assumes a dual-target MinGW supporting `-m32`. |
+| `msvc`    | **Nmake** for Microsoft's make program.                      |
+| `watcom`  | **Wmake** for OpenWatcom's make program.                     |
 
 It works by finding all source-files (`.c`, `*.cc`, `*.cxx` and `*.cpp`) in
 current directory and all sub-directories (except `.git`) <br>
 and writes the Makefile based on this information. The Makefile is just a
 starting point for further hand-editing. Hints are inserted into Makefiles
-at `#! xx`.
+as `#! xx`.
 
 For a GNU-make generator, it also adds:
  * a rule to create a `foo.rc` file.
  * a rule to create dependencies from `SOURCES`.
 
-For the MinGW or Cygwin targets (generators `window`, `mingw` and `cygwin`),
-you can select CPU x64 target by `set CPU=x64 & gen-make -G mingw`. This will
-add a `-m64` to the `CFLAGS` and `LDFLAGS`.
+For the MinGW or Cygwin targets (in generators `window`, `mingw` and `cygwin`),
+you can select `x64` target by a <br>
+  `set CPU=x64 & gen-make -G mingw`
 
-A generated makefile in this git checkout directory is able to compile and
-link a program `foo.exe`.
+This will add a `-m64` to the `CFLAGS` and `LDFLAGS`. It preferably should do this
+at the time invoking `Makefile.MinGW` (not at the time of generating it).<br>
+You'll have to hand-edit the makefile to fix this.
+
+A generated makefile in this git checkout directory is able to compile and link a program `foo.exe`. <br>
+When running `foo.exe`, it should print:<br>
+
+`It seems a "gen-make.exe" generated Makefile was able to compile and build this 'foo.exe' program.` <br>
+`Congratulations! But I will not let you do any damage here.`
