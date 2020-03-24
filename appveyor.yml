@@ -11,6 +11,7 @@ build_script:
 
 test_script:
 - cmd: >-
+    doskey echo=c:\msys64\usr\bin\echo.exe -e '\e[1;32m$*\e[0m' &
     file_tree_walk.exe test-dir\    &
     echo Regenerating myself        &
     gen-make.exe -G windows         &
