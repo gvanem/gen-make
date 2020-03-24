@@ -78,7 +78,7 @@ static char prog [_MAX_PATH] = { "gen-make.exe" };
 
 static const char *line_end = "\\";
 static const char *obj_suffix = "o";
-static char       *cpu_env = "";
+static char       *cpu_env = NULL;
 
 static enum Generators generator = GEN_UNKNOWN;
 
@@ -102,6 +102,7 @@ static int WinMain_found = 0;
 static int DllMain_found = 0;
 
 static char *str_replace (int ch1, int ch2, char *str);
+static char *str_rtrim (char *s);
 static int   find_sources (void);
 static int   generate_rc_macro (FILE *out);
 
@@ -274,8 +275,9 @@ int main (int argc, char **argv)
      gnumake_generator = 1;
 
   cpu_env = getenv ("CPU");
-  if (!cpu_env)
-     cpu_env = "x86";
+  if (cpu_env)
+       cpu_env = str_rtrim (cpu_env);  /* Trim spaces from a "set CPU=x64  " */
+  else cpu_env = "x86";
 
   tzset();
   if (!find_sources())
@@ -520,6 +522,29 @@ static char *str_replace (int ch1, int ch2, char *str)
   return (str);
 }
 
+/*
+ * Trim trailing blanks (space/tab) from a string.
+ */
+static char *str_rtrim (char *s)
+{
+  size_t n;
+  int    ch;
+
+  assert (s != NULL);
+  n = strlen (s) - 1;
+  while (n)
+  {
+    ch = (int)s [n];
+    if (!isspace(ch))
+       break;
+    s[n--] = '\0';
+  }
+  return (s);
+}
+
+/*
+ * Strip drive-letter, directory and suffix from a filename.
+ */
 static char *basename (const char *fname)
 {
   const char *base = fname;
