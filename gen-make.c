@@ -275,7 +275,7 @@ int main (int argc, char **argv)
 
   cpu_env = getenv ("CPU");
   if (!cpu_env)
-     cpu_env = "?";
+     cpu_env = "x86";
 
   tzset();
   if (!find_sources())
