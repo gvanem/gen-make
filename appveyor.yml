@@ -1,21 +1,15 @@
-#
-# Make an alias 'echo' to a Msys 'echo' with colour support.
-# Thus all 'echo' statements should become green in the AppVeyor log.
-#
 build_script:
 - cmd: >-
-   rem Path for MinGW is first, then path for make             &
-   set PATH=c:\msys64\MinGW32\bin;c:\msys64\usr\bin;%PATH%     &
-   doskey echo=c:\msys64\usr\bin\echo.exe -e '\e[1;32m$*\e[0m' &
+   rem Path for MinGW is first, then path for make         &
+   set PATH=c:\msys64\MinGW32\bin;c:\msys64\usr\bin;%PATH% &
    make CC=gcc
 
 test_script:
 - cmd: >-
-    doskey echo=c:\msys64\usr\bin\echo.exe -e '\e[1;32m$*\e[0m' &
-    file_tree_walk.exe test-dir\    &
-    echo Regenerating myself        &
-    gen-make.exe -G windows         &
-    make CC=gcc -f Makefile.windows &
+    file_tree_walk.exe test-dir\                                     &
+    c:\msys64\usr\bin\echo.exe -e '\e[1;32mRegenerating myself\e[0m' &
+    gen-make.exe -G windows                                          &
+    make CC=gcc -f Makefile.windows                                  &
     foo.exe
 
 
