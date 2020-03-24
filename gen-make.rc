@@ -16,6 +16,9 @@
 #elif defined(_MSC_VER)
   #define RC_BUILDER "(MSVC)"
 
+#elif defined(__WATCOMC__)
+  #define RC_BUILDER "(OpenWatcom)"
+
 #else
   #define RC_BUILDER ""
 #endif
