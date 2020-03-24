@@ -35,7 +35,7 @@ BEGIN
     BEGIN
       VALUE "CompanyName",      "foo"
       VALUE "FileDescription",  "A PE-resource for self-generated foo programs in 'gen-make'"
-      VALUE "FileVersion",      "0.1" RC_BUILDER
+      VALUE "FileVersion",      "0.1 " RC_BUILDER
       VALUE "InternalName",     "foo.exe"
       VALUE "OriginalFilename", "foo.exe"
       VALUE "ProductName",      "foo.exe"
