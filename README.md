@@ -39,3 +39,6 @@ When running `foo.exe`, it should print:<br>
 
 `It seems a "gen-make.exe" generated Makefile was able to compile and build this 'foo.exe' program.` <br>
 `Congratulations! But I will not let you do any damage here.`
+
+A future version could use the Python package **[Mako](https://www.makotemplates.org/)**
+to generate the templates. May at run-time?
