@@ -33,7 +33,7 @@ else
 endif
 
 ifneq ($(CC),gcc)
-  CFLAGS = -nologo -MD -W2 -O2 -D_CRT_SECURE_NO_WARNINGS \
+  CFLAGS = -nologo -MD -Z7 -W2 -O2 -D_CRT_SECURE_NO_WARNINGS \
            -D_CRT_NONSTDC_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE \
            -D_CRT_OBSOLETE_NO_WARNINGS
 
