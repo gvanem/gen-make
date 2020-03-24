@@ -1,5 +1,7 @@
 ## gen-make 1.0.2
 
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/gvanem/gen-make?branch=master&svg=true)](https://ci.appveyor.com/project/gvanem/gen-make)
+
 A simple makefile generator that can generate makefiles for:
  * GNU-make targeting MinGW, clang-cl or MSVC.
  * Microsoft's Nmake targeting MSVC only.
