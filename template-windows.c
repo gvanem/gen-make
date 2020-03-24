@@ -85,12 +85,15 @@ static const char *template_windows[] = {
   "$(OBJ_DIR):",
   "\t- mkdir $(OBJ_DIR)",
   "",
-  "foo.exe: $(OBJECTS)",
+  "foo.exe: $(OBJECTS) #! maybe add a '$(OBJ_DIR)/foo.res' here?",
   "\t$(call link_EXE, $@, $^ $(EX_LIBS))",
   "",
   "foo_imp.lib:  foo.dll",
   "libfoo.dll.a: foo.dll",
   "",
+  "#",
+  "#! Unless the '$(OBJECTS)' exports something, this could create no 'foo_imp.lib' file.",
+  "#",
   "ifeq ($(CC),gcc)",
   "foo.dll: $(OBJECTS)",
   "\t$(call link_DLL, $@, libfoo.dll.a, $^ $(EX_LIBS))",
@@ -101,13 +104,15 @@ static const char *template_windows[] = {
   "",
   "%c",
   "%l",
-  "%r",
+  "$(OBJ_DIR)/%.res: %.rc",
+  "\t$(call make_res, $<, $@)",
+  "",
   "install: $(PROGRAM)",
   "\tcp --update $^ $(INSTALL_BIN)",
   "\t@echo",
   "",
   "clean:",
-  "\trm -f $(OBJECTS)",
+  "\trm -f $(OBJECTS) $(OBJ_DIR)/foo.res",
   "\t- rmdir $(OBJ_DIR)",
   "",
   "vclean realclean: clean",
@@ -157,10 +162,6 @@ const char *windows_cxx_rule =
            "$(OBJ_DIR)/%.obj: %.cxx\n"
            "\t$(CC) -TP -EHsc $(CFLAGS) -Fo./$@ -c $<\n"
            "\t@echo\n";
-
-const char *windows_res_rule =
-           "$(OBJ_DIR)/%.res: %.rc\n"
-           "\t$(call make_res, $<, $@)\n";
 
 const char *windows_lib_rule =
            "#\n"

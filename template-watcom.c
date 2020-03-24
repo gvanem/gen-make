@@ -25,19 +25,22 @@ static const char *template_watcom[] = {
   "",
   "GENERATED = config.h",
   "",
-  "%V",
   "all: .SYMBOLIC $(GENERATED) $(OBJ_DIR) $(PROGRAM)",
   "\t@echo Welcome to $(PROGRAM) (Watcom).",
   "",
-  "$(PROGRAM): $(OBJECTS)",
+  "$(PROGRAM): $(OBJECTS) #! maybe add a 'foo.res' here?",
   "\twlink $(LDFLAGS) option quiet, caseexact, map name $(PROGRAM) file { $(OBJECTS) } library $(EX_LIBS)",
   "",
   "$(OBJ_DIR):",
   "\t- md $(OBJ_DIR)",
   "",
   "%c",
-  "%r",
   "%l",
+  ".ERASE",
+  "$(OBJ_DIR)/foo.res: foo.rc $(THIS_FILE)",
+  "\twrc -q -r -zm -D__WATCOMC__ -fo=$@ $[@",
+  "\t@echo",
+  "",
   "clean: .SYMBOLIC",
   "\trm -f $(OBJECTS) $(PROGRAM:.exe=.map)",
   "\t- rd $(OBJ_DIR)",
@@ -73,12 +76,6 @@ const char *watcom_cxx_rule =
            ".cxx.obj:\n"
            "\t*wpp386 $(CFLAGS) $[@ -fo=$@\n"
            "\t@echo\n";
-
-const char *watcom_res_rule =
-            ".ERASE\n"
-            "$(OBJ_DIR)\\foo.res: foo.rc $(THIS_FILE)\n"
-            "\twrc -q -r -zm -D__WATCOMC__ -fo=$@ $[@\n"
-            "\t@echo\n";
 
 const char *watcom_lib_rule =
             ".ERASE\n"

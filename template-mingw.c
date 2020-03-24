@@ -38,20 +38,23 @@ static const char *template_mingw[] = {
   "$(OBJ_DIR):",
   "\t- mkdir $(OBJ_DIR)",
   "",
-  "$(PROGRAM): $(OBJECTS)",
+  "$(PROGRAM): $(OBJECTS) #! maybe add a '$(OBJ_DIR)/foo.res' here?",
   "\t$(call green_msg, Linking $@)",
   "\t$(CC) $(LDFLAGS) -o $@ $^ $(EX_LIBS) > $(@:.exe=.map)",
+  "\t@echo",
   "",
   "%c",
-  "%r",
-  "%l",
+  "$(OBJ_DIR)/%.res: %.rc",
+  "\twindres --target=%T -D__MINGW32__ -O COFF -o $@ $<",
+  "\t@echo",
   "",
+  "%l",
   "clean:",
   "\trm -f $(OBJECTS)",
+  "\t- rmdir $(OBJ_DIR)",
   "",
   "vclean realclean: clean",
   "\trm -f .depend.MinGW $(PROGRAM) $(PROGRAM:.exe=.map) $(GENERATED)",
-  "\t- rmdir $(OBJ_DIR)",
   "",
   TEMPLATE_CONFIG,
   "",
@@ -80,13 +83,8 @@ const char *mingw_cxx_rule =
            "\t$(CC) -x c++ $(CFLAGS) -o $@ -c $<\n"
            "\t@echo\n";
 
-const char *mingw_res_rule =
-           "$(OBJ_DIR)/%.res: %.rc\n"
-           "\twindres --target=pe-i386 -D__MINGW32__ -O COFF -o $@ $<\n"
-           "\t@echo\n";
-
 const char *mingw_lib_rule =
-           "#\n# Use $(OBJECTS) or $(LIB_OBJ) for $(PROGRAM) or libfoo.a?\n#\n"
+           "#\n#! Use $(OBJECTS) or $(LIB_OBJ) for $(PROGRAM) or libfoo.a?\n#\n"
            "libfoo.a: $(LIB_OBJ)\n"
            "\trm -f $@\n"
            "\tar rs $@ $^\n"

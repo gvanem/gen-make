@@ -31,13 +31,16 @@ static const char *template_msvc[] = {
   "\t@echo",
   "",
   "%c",
-  "%r",
   "%l",
+  ".rc.res:",
+  "\trc -nologo -D_MSC_VER -Fo./$*.res $<",
+  "\t@echo",
+  "",
   "clean:",
-  "\tdel $(OBJECTS) $(PROGRAM:.exe=.map)",
+  "\t- del $(OBJECTS) $(PROGRAM:.exe=.map)",
   "",
   "vclean realclean: clean",
-  "\tdel $(PROGRAM) $(GENERATED)",
+  "\t- del $(PROGRAM) $(GENERATED)",
   "",
   TEMPLATE_CONFIG
 };
@@ -64,14 +67,9 @@ const char *msvc_cxx_rule =
            "\t$(CC) -TP $(CFLAGS) -Fo$*.obj -c $<\n"
            "\t@echo\n";
 
-const char *msvc_res_rule =
-           ".rc.res:\n"
-           "\trc -nologo -D_MSC_VER -Fo./$*.res $<\n"
-           "\t@echo\n";
-
 const char *msvc_lib_rule =
            "foo.lib: $(LIB_OBJ)\n"
-           "\tlib -nologo -machine:x86 -out:$@ $**\n"
+           "\tlib -nologo -out:$@ $**\n"
            "\t@echo\n";
 
 int generate_msvc_nmake (FILE *out)

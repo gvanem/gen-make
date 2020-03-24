@@ -69,7 +69,6 @@ static int         debug = 0;
 static int         dry_run = 0;
 static int         force_overwrite = 0;
 static int         gnumake_generator = 0;
-static const char *res_rule = NULL;
 static const char *lib_rule = NULL;
 static const char *c_rule = NULL;
 static const char *cc_rule = NULL;
@@ -79,6 +78,7 @@ static char prog [_MAX_PATH] = { "gen-make.exe" };
 
 static const char *line_end = "\\";
 static const char *obj_suffix = "o";
+static char       *cpu_env = "";
 
 static enum Generators generator = GEN_UNKNOWN;
 
@@ -273,10 +273,14 @@ int main (int argc, char **argv)
   if (generator == GEN_MINGW || generator == GEN_CYGWIN || generator == GEN_WINDOWS)
      gnumake_generator = 1;
 
+  cpu_env = getenv ("CPU");
+  if (!cpu_env)
+     cpu_env = "?";
+
   tzset();
   if (!find_sources())
   {
-    puts ("I found no .c/.cpp/.cxx sources");
+    puts ("I found no .c/.cc/.cpp/.cxx sources");
     return (1);
   }
 
@@ -288,7 +292,6 @@ int main (int argc, char **argv)
          cc_rule  = mingw_cc_rule;
          cpp_rule = mingw_cpp_rule;
          cxx_rule = mingw_cxx_rule;
-         res_rule = mingw_res_rule;
          lib_rule = mingw_lib_rule;
          generate_mingw_make (fil);
          break;
@@ -299,7 +302,6 @@ int main (int argc, char **argv)
          cc_rule  = cygwin_cc_rule;
          cpp_rule = cygwin_cpp_rule;
          cxx_rule = cygwin_cxx_rule;
-         res_rule = cygwin_res_rule;
          lib_rule = cygwin_lib_rule;
          generate_cygwin_make (fil);
          break;
@@ -310,7 +312,6 @@ int main (int argc, char **argv)
          cc_rule  = msvc_cc_rule;
          cpp_rule = msvc_cpp_rule;
          cxx_rule = msvc_cxx_rule;
-         res_rule = msvc_res_rule;
          lib_rule = msvc_lib_rule;
          generate_msvc_nmake (fil);
       // generate_msvc_deps (fil);
@@ -322,7 +323,6 @@ int main (int argc, char **argv)
          cc_rule  = watcom_cc_rule;
          cpp_rule = watcom_cpp_rule;
          cxx_rule = watcom_cxx_rule;
-         res_rule = watcom_res_rule;
          lib_rule = watcom_lib_rule;
          generate_watcom_wmake (fil);
       // generate_watcom_deps (fil);
@@ -334,7 +334,6 @@ int main (int argc, char **argv)
          cc_rule  = windows_cc_rule;
          cpp_rule = windows_cpp_rule;
          cxx_rule = windows_cxx_rule;
-         res_rule = windows_res_rule;
          lib_rule = windows_lib_rule;
          generate_windows_make (fil);
          break;
@@ -373,7 +372,7 @@ static void add_file (int is_c, int is_cc, int is_cpp, int is_cxx, int is_rc, in
   assert (array);
   assert (num);
 
-  if (gnumake_generator)
+  if (gnumake_generator || generator == GEN_WATCOM)
      str_replace ('\\', '/', f);
 
   smartlist_add (array, f);
@@ -458,7 +457,7 @@ static int file_walker (const char *path, const WIN32_FIND_DATA *ff)
   for (i = 0; i < smartlist_len(vpaths); i++)
       if (!strcmp(dir,smartlist_get(vpaths,i)))
       {
-        add_it = 0;    /* already has this VPATH */
+        add_it = 0;    /* already has this in 'vpaths[]' */
         break;
       }
   if (add_it)
@@ -543,13 +542,20 @@ static char *basename (const char *fname)
   return (char*) base;
 }
 
-static const char *get_bitness (void)
+static const char *get_rc_target (void)
 {
-  const char *env = getenv ("CPU");
+  if (!stricmp(cpu_env,"x86"))
+     return ("pe-i386");
+  if (!stricmp(cpu_env,"x64"))
+     return ("pe-x86-64");
+  return ("??");
+}
 
-  if (!env || !stricmp(env,"x86"))
+static const char *get_m_bitness (void)
+{
+  if (!stricmp(cpu_env,"x86"))
      return ("32");
-  if (!stricmp(env,"x64"))
+  if (!stricmp(cpu_env,"x64"))
      return ("64");
   return ("??");
 }
@@ -586,28 +592,82 @@ static void write_files (FILE *out, smartlist_t *sl, int indent)
   }
 }
 
-static void write_one_object (FILE *out, smartlist_t *sl, int idx, int *len)
+static void write_one_object (FILE *out, smartlist_t *sl, int idx, int *line_len)
 {
   char *file = basename (smartlist_get(sl,idx));
   char *dot  = strrchr (file, '.');
 
-  *len += fprintf (out, " $(OBJ_DIR)/%.*s.%s", dot-file, file, obj_suffix);
-  if (*len > 60 && idx < smartlist_len(sl)-1)
+  *line_len += fprintf (out, " $(OBJ_DIR)/%.*s.%s", dot-file, file, obj_suffix);
+  if (*line_len > 60 && idx < smartlist_len(sl)-1)
   {
     fprintf (out, " %s\n         ", line_end);
-    *len = 0;
+    *line_len = 0;
   }
 }
 
 static void write_objects (FILE *out, smartlist_t *sl, int num, int add_line_end)
 {
-  int i, len = 0;
+  int i, line_len = 0;
 
   if (add_line_end)
      fprintf (out, " %s\n         ", line_end);
 
   for (i = 0; i < num; i++)
-      write_one_object (out, sl, i, &len);
+      write_one_object (out, sl, i, &line_len);
+}
+
+/*
+ * Wmake: write one 'what: path1;path2' statement for a file-extension;
+ * ".c", ".cc", ".cxx", or ".cpp" files.
+ */
+static void write_vpath_wmake (FILE *out, const char *what, smartlist_t *files)
+{
+  int i, max;
+
+  if (smartlist_len(files) == 0)
+     return;
+
+  fprintf (out, ".%s", what);
+  max = smartlist_len (vpaths);
+  for (i = 0; i < max; i++)
+  {
+    fprintf (out, "%s", (const char*)smartlist_get(vpaths,i));
+    if (i < max-1)
+         fputc (';', out);
+    else fputc ('\n', out);
+  }
+}
+
+/*
+ * Handler for format '%v'.
+ *
+ * VPATH handling for OpenWatcom's 'wmake' is speciail. It seems only to have
+ * these statements:
+ *  .c:    path1;path2
+ *  .cc:   path1;path2
+ *  .cpp:  path1;path2
+ */
+static void write_vpaths (FILE *out)
+{
+  int i, max = smartlist_len (vpaths);
+
+  if (max == 0)
+     return;
+
+  if (generator == GEN_WATCOM)
+  {
+    write_vpath_wmake (out, "c:   ", c_files);
+    write_vpath_wmake (out, "cc:  ", cc_files);
+    write_vpath_wmake (out, "cxx: ", cxx_files);
+    write_vpath_wmake (out, "cpp: ", cpp_files);
+  }
+  else
+  {
+    fprintf (out, "VPATH = ");
+    for (i = 0; i < max; i++)
+        fprintf (out, "%s ", (const char*)smartlist_get(vpaths,i));
+  }
+  fprintf (out, "  #! %d VPATHs\n", max);
 }
 
 /*
@@ -615,18 +675,22 @@ static void write_objects (FILE *out, smartlist_t *sl, int num, int add_line_end
  *  '%c' -> write the .c/.cc/.cxx/.cpp -> object rule(s).
  *  '%D' -> write the date/time stamp.
  *  '%o' -> write list of object files (prefixed with $(OBJ_DIR)).
- *  '%r' -> write the .rc -> .res rule(s).
- *  '%R' -> write a GNU-make macro to for a foo.rc file.
+ *  '%R' -> write a GNU-make macro for a foo.rc file.
  *  '%l' -> write the library rule.
  *  '%s' -> write list of .c-files for the SOURCES line.
  *  '%v' -> write a VPATH statement if needed.
+ *  '%t' -> write out bitness for gcc targets:
+ *           '-m%t' and CPU=x86 -> '-m32'.
+ *           '-m%t' and CPU=x64 -> '-m64'.
+ *  '%T' -> write out 'windres --target=x' for gcc targets:
+ *           '--target=%T' and CPU=x86 -> '--target=pe-i386'.
+ *           '--target=%T' and CPU=x64 -> '--target=pe-x86-64'.
  */
 int write_template_line (FILE *out, const char *templ)
 {
   const char *p;
-  int         i;
 
-  p = strchr (templ,'%');
+  p = strchr (templ, '%');
   if (p && p[1] == 's')
   {
     int indent = p - templ;
@@ -636,11 +700,11 @@ int write_template_line (FILE *out, const char *templ)
     /* Write the list of .c/.cc/.cpp-files at this point.
      */
     write_files (out, c_files, indent);
-    fprintf (out, "%*s# %d .c SOURCES files found (recursively)\n", indent, "", num_c_files);
+    fprintf (out, "%*s#! %d .c SOURCES files found (recursively)\n", indent, "", num_c_files);
 
     if (num_cc_files > 0)
     {
-      fprintf (out, "#\n#! Add these $(CC_SOURCES) to $(OBJECTS) as needed.\n#\nCC_SOURCES = ");
+      fprintf (out, "\n#\n#! Add these $(CC_SOURCES) to $(OBJECTS) as needed.\n#\nCC_SOURCES = ");
       write_files (out, cc_files, indent+3);
     }
 
@@ -657,14 +721,14 @@ int write_template_line (FILE *out, const char *templ)
     }
 
     if (num_h_in_files > 0)
-       fprintf (out, "%*s# Found %d .h.in-file(s); add rules for these as needed.\n", indent, "", num_h_in_files);
+       fprintf (out, "%*s#! Found %d .h.in-file(s); add rules for these as needed.\n", indent, "", num_h_in_files);
 
     if (num_rc_files)
-       fprintf (out, "%*s# Found %d .rc-file(s).\n", indent, "", num_rc_files);
+       fprintf (out, "%*s#! Found %d .rc-file(s).\n", indent, "", num_rc_files);
     return (1);
   }
 
-  p = strchr (templ,'%');
+  p = strchr (templ, '%');
   if (p && p[1] == 'D')
   {
     time_t t = time (NULL);
@@ -674,27 +738,30 @@ int write_template_line (FILE *out, const char *templ)
     return fprintf (out, "%.*s<%.24s>%s\n", p-templ-2, templ, asctime(tm), p);
   }
 
-  p = strchr (templ,'%');
-  if (p && p[1] == 'b')
+  /* '%t' and '%T' are only used for gcc targets.
+   */
+  p = strchr (templ, '%');
+  if (p && p[1] == 't')
   {
-    fprintf (out, "%.*s%s", p-templ, templ, get_bitness());
-
-    templ = p + 2;  /* skip past '%b' and fall-through */
+    fprintf (out, "%.*s%s", p-templ, templ, get_m_bitness());
+    templ = p + 2;  /* skip past '%t' and fall-through */
   }
 
-  p = strchr (templ,'%');
+  /* '%T' writes out the correct flags for 'windres'.
+   */
+  p = strchr (templ, '%');
+  if (p && p[1] == 'T')
+  {
+    fprintf (out, "%.*s%s", p-templ, templ, get_rc_target());
+    templ = p + 2;
+  }
+
+  p = strchr (templ, '%');
   if (p && p[1] == 'l')
   {
     assert (lib_rule);
     return fprintf (out, "%s\n", lib_rule);
     templ = p + 2;  /* skip past '%l' and fall-through */
-  }
-
-  p = strchr (templ,'%');
-  if (p && p[1] == 'r')
-  {
-    assert (res_rule);
-    return fprintf (out, "%s\n", res_rule);
   }
 
   if (p && p[1] == 'R')
@@ -704,7 +771,7 @@ int write_template_line (FILE *out, const char *templ)
     templ = p + 2;  /* skip past '%R' and fall-through */
   }
 
-  p = strchr (templ,'%');
+  p = strchr (templ, '%');
   if (p && p[1] == 'c')
   {
     assert (c_rule);
@@ -727,40 +794,8 @@ int write_template_line (FILE *out, const char *templ)
   p = strchr (templ, '%');
   if (p && p[1] == 'v')
   {
-    int max = smartlist_len (vpaths);
-
-    if (max > 0)
-    {
-      fprintf (out, "VPATH = ");
-      for (i = 0; i < max; i++)
-          fprintf (out, "%s ", (const char*)smartlist_get(vpaths,i));
-      fprintf (out, "#! %d VPATHs\n", max);
-      return (1);
-    }
-    templ = p + 2;  /* skip past '%v' and fall-through */
-  }
-
-  /* VPATH handling for OpenWatcom's 'wmake'. It seems only to have the weird
-   * statement '.c: path1;path2'
-   */
-  p = strchr (templ, '%');
-  if (p && p[1] == 'V')
-  {
-    int max = smartlist_len (vpaths);
-
-    if (max > 0)
-    {
-      fprintf (out, ".c: ");
-      for (i = 0; i < max; i++)
-      {
-        fprintf (out, "%s", (const char*)smartlist_get(vpaths,i));
-        if (i < max-1)
-           fputc (';', out);
-      }
-      fprintf (out, "   #! %d VPATHs\n\n", max);
-      return (1);
-    }
-    templ = p + 2;  /* skip past '%V' and fall-through */
+    write_vpaths (out);
+    return (1);
   }
 
   p = strchr (templ, '%');
@@ -769,10 +804,15 @@ int write_template_line (FILE *out, const char *templ)
     fprintf (out, "%.*s", p-templ-1, templ);
 
     write_objects (out, c_files, num_c_files, 0);
-    write_objects (out, cc_files, num_cc_files, num_c_files > 0);
-    write_objects (out, cpp_files, num_cpp_files, num_c_files > 0 || num_cc_files > 0);
-    fprintf (out, "\n        # %d object files\n", num_c_files + num_cc_files + num_cpp_files);
-    templ = p + 2;  /* skip past '%o' */
+
+    if (num_cc_files > 0)
+       write_objects (out, cc_files, num_cc_files, num_c_files > 0);
+
+    if (num_cpp_files > 0)
+       write_objects (out, cpp_files, num_cpp_files, num_c_files > 0 || num_cc_files > 0);
+
+    fprintf (out, "\n        #! %d object files\n", num_c_files + num_cc_files + num_cpp_files);
+    return (1);  /* should be nothing after '%o' */
   }
 
   if (!p && !strncmp(templ, "all: ", 5))
