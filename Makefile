@@ -77,10 +77,11 @@ gen-make.exe: $(OBJECTS) $(OBJ_DIR)/gen-make.res
 	@echo
 
 file_tree_walk.exe: file_tree_walk.c
+	$(call green_msg, Compiling and linking $@)
 	$(CC) -c -DTEST $(CFLAGS) $<
 	$(call link_EXE, $@, file_tree_walk.$(O))
 	rm -f file_tree_walk.$(O)
-	$(call green_msg, Test me using "file_tree_walk.exe Dir1\\")
+	$(call green_msg, Test me using "file_tree_walk.exe test-dir\\")
 	@echo
 
 test: gen-make.exe
@@ -112,9 +113,10 @@ clean:
 	rm -f gen-make.pdb file_tree_walk.pdb
 	rmdir $(OBJ_DIR)
 
-$(OBJ_DIR)/gen-make.$(O):         gen-make.c gen-make.h
+$(OBJ_DIR)/gen-make.$(O):         gen-make.c gen-make.h smartlist.h
 $(OBJ_DIR)/gen-make.res:          gen-make.rc gen-make.h
-$(OBJ_DIR)/file_tree_walk.$(O):   file_tree_walk.c gen-make.h
+$(OBJ_DIR)/file_tree_walk.$(O):   file_tree_walk.c
+$(OBJ_DIR)/smartlist.$(O):        smartlist.c smartlist.h
 $(OBJ_DIR)/template-mingw.$(O):   template-mingw.c gen-make.h
 $(OBJ_DIR)/template-cygwin.$(O):  template-cygwin.c gen-make.h
 $(OBJ_DIR)/template-msvc.$(O):    template-msvc.c gen-make.h
