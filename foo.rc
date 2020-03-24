@@ -3,6 +3,9 @@
 #if defined(__MINGW32__)
   #define RC_BUILDER "(MinGW)"
 
+#elif defined(__CYGWIN__)
+  #define RC_BUILDER "(Cygwin)"
+
 #elif defined(__clang__)
   #define RC_BUILDER "(clang-cl)"
 
