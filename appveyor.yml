@@ -6,7 +6,7 @@ build_script:
 
 test_script:
 - cmd: >-
-    file_tree_walk.exe Dir1                                      &
+    file_tree_walk.exe test-dir\                                 &
     c:\msys64\usr\bin\echo -e '\e[1;32mRegenerating myself\e[0m' &
     set CPU=x64                                                  &
     gen-make.exe -G windows                                      &
