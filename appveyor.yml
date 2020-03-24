@@ -1,6 +1,6 @@
 build_script:
 - cmd: >-
-   rem Path for MinGW is first, then path for make
+   rem Path for MinGW is first, then path for make         &
    set PATH=c:\msys64\MinGW32\bin;c:\msys64\usr\bin;%PATH% &
    make CPU=x64 CC=gcc
 
