@@ -11,7 +11,7 @@ green_msg = @echo -e '\e[1;32m$(strip $(1))\e[0m'
 
 define Usage
 
-  Usage: $(MAKE) CC=[gcc | cl, clang-cl]
+  Usage: $(MAKE) CC=[gcc | cl | clang-cl]
 endef
 
 ifeq ($(CC),clang-cl)
