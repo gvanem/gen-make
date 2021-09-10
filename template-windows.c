@@ -63,7 +63,6 @@ static const char *template_windows[] = {
   "  endif",
   "",
   "  EX_LIBS += " TEMPLATE_EX_LIBS,
-  "",
   "endif",
   "",
   "CFLAGS += " TEMPLATE_COMMON_CFLAGS,
@@ -168,7 +167,7 @@ const char *windows_lib_rule =
            "# Link $(PROGRAM) with this instead?\n"
            "#\n"
            "libfoo.a foo.lib: $(LIB_OBJ)\n"
-           "\t $(call_make_lib, $@, $^)\n";
+           "\t $(call make_lib, $@, $^)\n";
 
 int generate_windows_make (FILE *out)
 {
