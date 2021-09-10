@@ -666,7 +666,7 @@ static void write_vpath_wmake (FILE *out, const char *what, smartlist_t *files)
 /*
  * Handler for format '%v'.
  *
- * VPATH handling for OpenWatcom's 'wmake' is speciail. It seems only to have
+ * VPATH handling for OpenWatcom's 'wmake' is special. It seems only to have
  * these statements:
  *  .c:    path1;path2
  *  .cc:   path1;path2
