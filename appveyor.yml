@@ -2,18 +2,18 @@ build_script:
 - cmd: >-
    rem Path for MinGW is first, then path for make         &
    set PATH=c:\msys64\MinGW32\bin;c:\msys64\usr\bin;%PATH% &
-   c:\msys64\usr\bin\echo.exe -e '\e[1;33mBuilding\e[0m'   &
+   c:\msys64\usr\bin\echo.exe -e '\e[1;33mBuilding:\e[0m'  &
    make CC=gcc
 
 test_script:
 - cmd: >-
-    c:\msys64\usr\bin\echo.exe -e '\e[1;33mTesting file_tree_walk\e[0m' &
-    file_tree_walk.exe test-dir\                                        &
-    c:\msys64\usr\bin\echo.exe -e '\e[1;33mRegenerating myself\e[0m'    &
-    gen-make.exe -G windows                                             &
-    make CC=gcc -f Makefile.windows                                     &
-    foo.exe                                                             &
-    c:\msys64\usr\bin\echo.exe -e '\e[1;33mTest done\e[0m'
+    c:\msys64\usr\bin\echo.exe -e '\e[1;33mTesting file_tree_walk:\e[0m' &
+    file_tree_walk.exe test-dir\                                         &
+    c:\msys64\usr\bin\echo.exe -e '\e[1;33mRegenerating myself:\e[0m'    &
+    gen-make.exe -G windows                                              &
+    make CC=gcc -f Makefile.windows                                      &
+    foo.exe                                                              &
+    c:\msys64\usr\bin\echo.exe -e '\e[1;33mTest done.\e[0m'
 
 
 
