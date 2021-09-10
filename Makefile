@@ -99,11 +99,11 @@ $(OBJ_DIR)/%.obj: %.c
 	@echo
 
 ifeq ($(CC),gcc)
-$(OBJ_DIR)/gen-make.res: gen-make.rc
+  $(OBJ_DIR)/gen-make.res: gen-make.rc
 	windres $(RCFLAGS) -o $@ $<
 	@echo
 else
-$(OBJ_DIR)/gen-make.res: gen-make.rc
+  $(OBJ_DIR)/gen-make.res: gen-make.rc
 	rc $(RCFLAGS) -fo$@ $<
 	@echo
 endif
