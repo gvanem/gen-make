@@ -29,12 +29,12 @@ For a GNU-make generator, it also adds:
  * a rule to create dependencies from `SOURCES`.
 
 For the MinGW or Cygwin targets (in generators `window`, `mingw` and `cygwin`),
-you can select `x64` target by a <br>
-  `set CPU=x64 & gen-make -G mingw`
+you can select `x64` target by e.g. a: <br>
+  `c:\MyProject> set CPU=x64 & gen-make -G mingw`
 
 This will add a `-m64` to the `CFLAGS` and `LDFLAGS`. It preferably should do this
-at the time invoking `Makefile.MinGW` (not at the time of generating it).<br>
-You'll have to hand-edit the makefile to fix this.
+at the time invoking `Makefile.MinGW` <br>
+(not at the time of generating it). You'll have to hand-edit the makefile to fix this.
 
 A generated makefile in this git checkout directory is able to compile and link a program `foo.exe`. <br>
 When running `foo.exe`, it should print:<br>
@@ -43,4 +43,4 @@ When running `foo.exe`, it should print:<br>
 `Congratulations! But I will not let you do any damage here.`
 
 A future version could use the Python package **[Mako](https://www.makotemplates.org/)**
-to generate the templates. May at run-time?
+to generate the templates. Maybe at run-time?
