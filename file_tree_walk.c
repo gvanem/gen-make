@@ -28,9 +28,7 @@
 #include <io.h>
 #include <windows.h>
 
-#if !defined(_MSC_VER) && !defined(__WATCOMC__)
-#include <dir.h>
-#endif
+int file_tree_walk_recursive = 1;
 
 typedef int (*walker_func)(const char *path, const WIN32_FIND_DATA *ff_data);
 
@@ -107,7 +105,7 @@ DWORD file_tree_walk (const char *dir, walker_func func)
 
     /* If this is a directory, walk its siblings. Recursion!
      */
-    if (ff_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    if (file_tree_walk_recursive && (ff_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
     {
       DWORD rc = file_tree_walk (path, func);
 

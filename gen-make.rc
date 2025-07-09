@@ -7,20 +7,10 @@
 #define RC_VERSION_STR  _STR(VER_MAJOR) "." _STR(VER_MINOR) "." _STR(VER_MICRO)
 #define RC_VERSION     VER_MAJOR, VER_MINOR, VER_MICRO, 0
 
-#if defined(__MINGW32__)
-  #define RC_BUILDER "(MinGW)"
-
-#elif defined(__clang__)
-  #define RC_BUILDER "(clang-cl)"
-
-#elif defined(_MSC_VER)
-  #define RC_BUILDER "(MSVC)"
-
-#elif defined(__WATCOMC__)
-  #define RC_BUILDER "(OpenWatcom)"
-
+#if defined(__clang__)
+  #define RC_BUILDER   "(clang-cl)"
 #else
-  #define RC_BUILDER ""
+  #define RC_BUILDER   "(MSVC)"
 #endif
 
 VS_VERSION_INFO VERSIONINFO
@@ -45,7 +35,7 @@ BEGIN
       VALUE "ProductName",      "gen-make.exe"
       VALUE "ProductVersion",   RC_VERSION_STR " " RC_BUILDER
       VALUE "LegalCopyright",   "Free and unencumbered licence released into the public domain.\r\n"
-                                "\t\t\t2012-2020, Gisle Vanem <gvanem@yahoo.no>."
+                                "\t\t\tGisle Vanem <gvanem@yahoo.no>."
     END
   END
 
