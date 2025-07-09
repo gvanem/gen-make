@@ -11,10 +11,7 @@ build_script:
 
 test_script:
   - cmd: c:\msys64\usr\bin\echo.exe -e '\e[1;33mRegenerating myself:\e[0m'
-  - cmd: bin\gen-make.exe -r > Makefile.windows
-  - cmd: make CC=cl -f Makefile.windows
-  - cmd: bin\foo.exe
-  - cmd: c:\msys64\usr\bin\echo.exe -e '\e[1;33mTest done.\e[0m'
+  - cmd: make CC=cl test
 
 
 

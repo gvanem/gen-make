@@ -67,10 +67,11 @@ bin/file_tree_walk.exe: $(OBJ_DIR)/file_tree_walk_test.obj | bin
 	@echo
 
 test: bin/gen-make.exe
-	cd hello_world                     ; \
-	../bin/gen-make > Makefile.Windows ; \
-	$(MAKE) -f Makefile.Windows CC=cl  ; \
-	foo.exe
+	$< --no-recurse > Makefile.Windows
+	rm -f $(OBJ_DIR)/gen-make.obj
+	$(MAKE) -f Makefile.Windows CC=$(CC)
+	$(call green_msg, \nRunning $(BRIGHT_WHITE)bin/foo.exe)
+	bin/foo.exe
 
 $(OBJ_DIR)/file_tree_walk_test.obj: file_tree_walk.c | $(OBJ_DIR)
 	$(CC) -c $(CFLAGS) -DTEST -Fo./$@ $<
@@ -84,24 +85,22 @@ $(OBJ_DIR)/gen-make.res: gen-make.rc | $(OBJ_DIR)
 	rc $(RCFLAGS) -fo$@ $<
 	@echo
 
-clean:
-	rm -f link.tmp Makefile.Windows
+clean: clean_msbuild
+	rm -f link.tmp
 	rm -fr $(OBJ_DIR)
 
-vclean: clean
-	rm -fr bin
+clean_msbuild:
+	rm -fr gen-make x64 x86
 
-$(OBJ_DIR)/gen-make.obj:         gen-make.c gen-make.h smartlist.h
-$(OBJ_DIR)/gen-make.res:         gen-make.rc gen-make.h
-$(OBJ_DIR)/file_tree_walk.obj:   file_tree_walk.c
-$(OBJ_DIR)/smartlist.obj:        smartlist.c smartlist.h
-$(OBJ_DIR)/template-windows.obj: template-windows.c gen-make.h
-$(OBJ_DIR)/getopt_long.obj:      getopt_long.c getopt_long.h
+vclean: clean
+	rm -f Makefile.Windows
+	rm -fr bin
 
 #
 # This assumes you have CygWin/Msys's 'echo' with colour support."
 #
 BRIGHT_GREEN = \e[1;32m
+BRIGHT_WHITE = \e[1;37m
 green_msg    = @echo -e '$(BRIGHT_GREEN)$(strip $(1))\e[0m'
 
 define link_EXE
@@ -110,3 +109,9 @@ define link_EXE
   @echo
 endef
 
+$(OBJ_DIR)/file_tree_walk.obj:   file_tree_walk.c
+$(OBJ_DIR)/gen-make.obj:         gen-make.c gen-make.h smartlist.h
+$(OBJ_DIR)/gen-make.res:         gen-make.rc gen-make.h
+$(OBJ_DIR)/getopt_long.obj:      getopt_long.c getopt_long.h
+$(OBJ_DIR)/smartlist.obj:        smartlist.c smartlist.h
+$(OBJ_DIR)/template-windows.obj: template-windows.c gen-make.h
