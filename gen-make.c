@@ -41,8 +41,7 @@
 
 static char prog [_MAX_PATH] = { "bin/gen-make.exe" };
 
-static const char *line_end   = "\\";
-static const char *obj_suffix = "obj";
+static const char *line_end = "\\";
 
 static smartlist_t *c_files;
 static smartlist_t *cc_files;
@@ -349,31 +348,6 @@ static char *str_replace (int ch1, int ch2, char *str)
     s++;
   }
   return (str);
-}
-
-/*
- * Strip drive-letter, directory and suffix from a filename.
- */
-static char *basename (const char *fname)
-{
-  const char *base = fname;
-
-  if (fname && *fname)
-  {
-    if (fname[1] == ':')
-    {
-      fname += 2;
-      base = fname;
-    }
-
-    while (*fname)
-    {
-      if (*fname == '\\' || *fname == '/')
-        base = fname + 1;
-      fname++;
-    }
-  }
-  return (char*) base;
 }
 
 static void write_files (FILE *out, smartlist_t *sl, size_t indent)
