@@ -40,7 +40,6 @@ ifeq ($(CC),clang-cl)
   CFLAGS  += -fms-compatibility
   RCFLAGS += -D__clang__
 else
-  CFLAGS  += -diagnostics:caret
   RCFLAGS += -D_MSC_VER
 endif
 
@@ -86,7 +85,7 @@ $(OBJ_DIR)/gen-make.res: gen-make.rc | $(OBJ_DIR)
 	@echo
 
 clean: clean_msbuild
-	rm -f link.tmp
+	rm -f vc14*.pdb link.tmp
 	rm -fr $(OBJ_DIR)
 
 clean_msbuild:
