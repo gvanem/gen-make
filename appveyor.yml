@@ -1,21 +1,20 @@
+install:
+  #
+  # Prepend the PATH for 'make' + 'sh' etc.
+  # And set compiler environment for MSVC/clang-cl:
+  #
+  - cmd: set PATH=c:\msys64\usr\bin;%PATH%
+  - cmd: call "c:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64
+
 build_script:
-- cmd: >-
-   rem Set PATH for make                                                           &
-   set PATH=c:\msys64\usr\bin;%PATH%                                               &
-   rem Set PATH for 'cl'                                                           &
-   call "c:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64 &
-   c:\msys64\usr\bin\echo.exe -e '\e[1;33mBuilding:\e[0m'                          &
-   make CC=cl
+  - cmd: make CC=cl
 
 test_script:
-- cmd: >-
-    c:\msys64\usr\bin\echo.exe -e '\e[1;33mTesting file_tree_walk:\e[0m' &
-    bin\file_tree_walk.exe test-dir\                                     &
-    c:\msys64\usr\bin\echo.exe -e '\e[1;33mRegenerating myself:\e[0m'    &
-    bin\gen-make.exe -r > Makefile.windows                               &
-    make CC=cl -f Makefile.windows                                       &
-    bin\foo.exe                                                          &
-    c:\msys64\usr\bin\echo.exe -e '\e[1;33mTest done.\e[0m'
+  - cmd: c:\msys64\usr\bin\echo.exe -e '\e[1;33mRegenerating myself:\e[0m'
+  - cmd: bin\gen-make.exe -r > Makefile.windows
+  - cmd: make CC=cl -f Makefile.windows
+  - cmd: bin\foo.exe
+  - cmd: c:\msys64\usr\bin\echo.exe -e '\e[1;33mTest done.\e[0m'
 
 
 
