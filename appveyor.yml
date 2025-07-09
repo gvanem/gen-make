@@ -10,7 +10,6 @@ build_script:
   - cmd: make CC=cl
 
 test_script:
-  - cmd: c:\msys64\usr\bin\echo.exe -e '\e[1;33mRegenerating myself:\e[0m'
   - cmd: make CC=cl test
 
 
